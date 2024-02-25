@@ -1,6 +1,10 @@
-bbruk main 3
+bbruk main 3 :33
 
-.env:
+https://www.mongodb.com/cloud/atlas/register
+^^ opprette egen mongodb atlas instance
+
+render.com <---- for å hoste node backend
+
 
 .env
 ```.env
