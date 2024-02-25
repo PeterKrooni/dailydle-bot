@@ -179,22 +179,22 @@ client.on('messageCreate', async (message) => {
                             message.channel.send(`Bot abuse detected. Self destructing in 10 seconds. (slutt å spamme din dfisdeiorgf)`)
                         } else {
                             message.channel.send(`Wordle: ${authorName} scored \n ${score} \n on Wordle ${wordleNr}`)
-                            const embedLoadData = await loadEntiesForEmbed(true)
-                            console.info(embedLoadData)
-                            top_wordle = '['+embedLoadData.top_wordle.discord_server_profile_name + ' | ' + embedLoadData.top_wordle.score+'](https://discord.com/channels/179293169849073664/1211255793622454273/1211371355950420038)'
-                            message.channel.send({ embeds: [getEmbeddList()], components: links });
                             const newEntry = await Entry.create({
-                                discord_channel_id: "1211255793622454273",
-                                discord_message_id: message.id,
+                                discord_channel_id: message.channel.id,
+                                discord_message_id: message.id ,
                                 discord_name: authorName,
                                 discord_server_profile_name: message.member.displayName,
-                                discord_author_id: message.author.id,
+                                discord_author_id: message.member.user.id,
                                 type: "Wordle",
                                 type_day_number: wordleNr,
                                 score: score,
                             }).then((res) => {
                                 message.channel.send(`\`\`\`Persisted document ${res}\`\`\``)
                             })
+                            const embedLoadData = await loadEntiesForEmbed(true)
+                            console.info(embedLoadData)
+                            top_wordle = '['+embedLoadData.top_wordle.discord_server_profile_name + ' | ' + embedLoadData.top_wordle.score+`](https://discord.com/channels/${embedLoadData.top_wordle.discord_author_id}/${embedLoadData.top_wordle.discord_channel_id}/${embedLoadData.top_wordle.discord_message_id})`
+                            message.channel.send({ embeds: [getEmbeddList()], components: links });
                         }
                     } catch (error) {
                         console.error('error: ', error)
