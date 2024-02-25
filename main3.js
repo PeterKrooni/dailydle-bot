@@ -57,54 +57,63 @@ const links = [
       ]
     }
   ];
-const statTrackerEmbed = {
-    color: 0x498f49,
-    author: {
-        name: 'Daylidle stat tracker',
-        icon_url: 'https://assets-prd.ignimgs.com/2022/04/15/wordle-1650045194490.jpg',
-        url: 'https://discord.js.org',
-    },
-    thumbnail: {
-        url: 'https://1000logos.net/wp-content/uploads/2023/05/Wordle-Emblem.png'
-    },
-    description: 'Dailydle - Søndag 25. februar, 2024',
-    fields: [
-        {
-            name: 'Daily high scores',
-            value: 'Share your dailydle scores in the channel to register your entry',
+
+let top_wordle = '...'
+let top_mini_crossword = '...'
+let top_connections = '...'
+let top_gamedle = '...'
+
+function getEmbeddList() {
+    return {
+        color: 0x498f49,
+        author: {
+            name: 'Daylidle stat tracker',
+            icon_url: 'https://assets-prd.ignimgs.com/2022/04/15/wordle-1650045194490.jpg',
+            url: 'https://discord.js.org',
         },
-        {
-            name: 'Wordle',
-            value: 'pkr | 3/6',
-            inline: true
+        thumbnail: {
+            url: 'https://1000logos.net/wp-content/uploads/2023/05/Wordle-Emblem.png'
         },
-        {
-            name: 'Mini crossword',
-            value: 'c0w | 1:28',
-            inline: true
+        description: 'Dailydle - Søndag 25. februar, 2024',
+        fields: [
+            {
+                name: 'Daily high scores',
+                value: 'Share your dailydle scores in the channel to register your entry',
+            },
+            {
+                name: 'Wordle',
+                value: top_wordle,
+                inline: true
+            },
+            {
+                name: 'Mini crossword',
+                value: top_mini_crossword,
+                inline: true
+            },
+            {
+                name: '',
+                value: '',
+                inline: false
+            },
+            {
+                name: 'Connections',
+                value: top_connections,
+                inline: true
+            },
+            {
+                name: 'Gamedle',
+                value: top_gamedle,
+                inline: true
+            },
+        ],
+        timestamp: new Date().toISOString(),
+        footer: {
+            text: 'Version 0.1.0',
+            icon_url: 'https://assets-prd.ignimgs.com/2022/04/15/wordle-1650045194490.jpg',
         },
-        {
-            name: '',
-            value: '',
-            inline: false
-        },
-        {
-            name: 'Connections',
-            value: 'elias | 5/4',
-            inline: true
-        },
-        {
-            name: 'Gamedle',
-            value: 'dune | 1/8',
-            inline: true
-        },
-    ],
-    timestamp: new Date().toISOString(),
-    footer: {
-        text: 'Version 0.1.0',
-        icon_url: 'https://assets-prd.ignimgs.com/2022/04/15/wordle-1650045194490.jpg',
-    },
-};
+    };
+}
+
 
 
 const cid = process.env.DISCORD_OAUTH_CLIENT_ID
@@ -149,9 +158,10 @@ await mongoose.connect(process.env.DAILYDLE_DB_URI).then(() => {
     process.exit(1)
 })
 import Entry from './entry.js'
+import loadEntiesForEmbed from './loadEmbed.js'
 
 client.on('messageCreate', async (message) => {
-    if (message.channel.id === "1211255793622454273" && !message.author.bot) {
+    if ((message.channel.id === "1211255793622454273" || message.channel.id === "1210534521573744720")  && !message.author.bot) {
         const content = message.content
         if (content.startsWith('Wordle')) {
             const re = /Wordle (\d{3,4}) ([X\d])\/\d/g;
@@ -165,15 +175,20 @@ client.on('messageCreate', async (message) => {
                     const wordleNr = splitContent[1]
                     const score = splitContent[2]
                     try {
-                        if (authorName.length > 20 || wordleNr.length > 20 || score.length > 20 ) {
+                        if (false){// authorName.length > 20 || wordleNr.length > 20 || score.length > 20 ) {
                             message.channel.send(`Bot abuse detected. Self destructing in 10 seconds. (slutt å spamme din dfisdeiorgf)`)
                         } else {
                             message.channel.send(`Wordle: ${authorName} scored \n ${score} \n on Wordle ${wordleNr}`)
-                            message.channel.send({ embeds: [statTrackerEmbed], components: links });
+                            const embedLoadData = await loadEntiesForEmbed(true)
+                            console.info(embedLoadData)
+                            top_wordle = '['+embedLoadData.top_wordle.discord_server_profile_name + ' | ' + embedLoadData.top_wordle.score+'](https://discord.com/channels/179293169849073664/1211255793622454273/1211371355950420038)'
+                            message.channel.send({ embeds: [getEmbeddList()], components: links });
                             const newEntry = await Entry.create({
+                                discord_channel_id: "1211255793622454273",
+                                discord_message_id: message.id,
                                 discord_name: authorName,
                                 discord_server_profile_name: message.member.displayName,
-                                discord_id: message.author.id,
+                                discord_author_id: message.author.id,
                                 type: "Wordle",
                                 type_day_number: wordleNr,
                                 score: score,
@@ -201,6 +216,11 @@ client.on('messageCreate', async (message) => {
                 console.info(res)
                 message.channel.send(`\`\`\`Completed -> -${res.deletedCount}\`\`\``)
             })
+        } else if (content.startsWith('test loadEntiesForEmbed')) {
+            await loadEntiesForEmbed(content.startsWith('test loadEntiesForEmbed today'))
+            .then((res) => {
+                message.channel.send(`\`\`\`Test output: -> -${res}\`\`\``)
+            })            
         }
     }
 })
