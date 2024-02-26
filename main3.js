@@ -163,22 +163,25 @@ import loadEntiesForEmbed from './loadEmbed.js'
 client.on('messageCreate', async (message) => {
     if ((message.channel.id === "1211255793622454273" || message.channel.id === "1210534521573744720")  && !message.author.bot) {
         const content = message.content
+        if (content.length > 500) {
+            return
+        }
         if (content.startsWith('Wordle')) {
             const re = /Wordle (\d{3,4}) ([X\d])\/\d/g;
             if (!re.test(content)){
                 message.channel.send(`Regex invalidated your response - message content: ${content} <@${message.member.id}>`)
             } else {
                 const splitContent = content.split(' ')
-                const wordleScore = splitContent[2]
+                const wordleScore = splitContent[2].split('\n')[0] ?? splitContent[2]
                 if (wordleScore) {
                     const authorName = message.author.displayName
                     const wordleNr = splitContent[1]
-                    const score = splitContent[2]
+                    const score = wordleScore[0] + wordleScore[1] + wordleScore[2]
                     try {
                         if (false){// authorName.length > 20 || wordleNr.length > 20 || score.length > 20 ) {
                             message.channel.send(`Bot abuse detected. Self destructing in 10 seconds. (slutt å spamme din dfisdeiorgf)`)
                         } else {
-                            message.channel.send(`Wordle: ${authorName} scored \n ${score} \n on Wordle ${wordleNr}`)
+                            message.channel.send(`${ message.member.displayName} scored ${score} on Wordle ${wordleNr}`)
                             const newEntry = await Entry.create({
                                 discord_channel_id: message.channel.id,
                                 discord_message_id: message.id ,
@@ -189,7 +192,9 @@ client.on('messageCreate', async (message) => {
                                 type_day_number: wordleNr,
                                 score: score,
                             }).then((res) => {
-                                message.channel.send(`\`\`\`Persisted document ${res}\`\`\``)
+                                if (message.channel.id === "1211255793622454273") {
+                                    message.channel.send(`\`\`\`Persisted document ${res}\`\`\``)
+                                }
                             })
                             const embedLoadData = await loadEntiesForEmbed(true)
                             console.info(embedLoadData)
