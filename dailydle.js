@@ -4,10 +4,10 @@ import Entry from './db/models/entry.js'
 import { links } from './constants.js'
 import { enabledChannelIDS } from './constants.js'
 
-let top_wordle = '...'
-let top_mini_crossword = '...'
-let top_connections = '...'
-let top_gamedle = '...'
+let top_wordle = ''
+let top_mini_crossword = '🛠️'
+let top_connections = '🛠️'
+let top_gamedle = '🛠️'
 
 function sortBy(field) {
   return function(a, b) {
@@ -15,7 +15,7 @@ function sortBy(field) {
   };
 }
 
-async function loadEntiesForEmbed(today) {
+async function loadWordleEntries(today) {
     if (!today) {
         const data = await Entry.find()
         return data
@@ -47,44 +47,47 @@ function getEmbeddList() {
       thumbnail: {
           url: 'https://1000logos.net/wp-content/uploads/2023/05/Wordle-Emblem.png'
       },
-      description: 'Dailydle - Søndag 25. februar, 2024',
-      fields: [
-          {
-              name: 'Daily high scores',
-              value: 'Share your dailydle scores in the channel to register your entry',
-          },
-          {
-              name: 'Wordle',
-              value: top_wordle,
-              inline: true
-          },
-          {
-              name: 'Mini crossword',
-              value: top_mini_crossword,
-              inline: true
-          },
-          {
-              name: '',
-              value: '',
-              inline: false
-          },
-          {
-              name: 'Connections',
-              value: top_connections,
-              inline: true
-          },
-          {
-              name: 'Gamedle',
-              value: top_gamedle,
-              inline: true
-          },
-      ],
+      description: 'Dailydle - Fredag 1. mars, 2024',
+      fields: getEmbedFields(),
       timestamp: new Date().toISOString(),
       footer: {
           text: 'Version 0.1.0',
           icon_url: 'https://assets-prd.ignimgs.com/2022/04/15/wordle-1650045194490.jpg',
       },
   };
+}
+
+function getEmbedFields() {
+  const fields = [{
+        name: 'Daily high scores',
+        value: 'Share your dailydle scores in the channel to register your entry',
+    },
+    {
+        name: 'Wordle',
+        value: top_wordle,
+        inline: true
+    },
+    {
+        name: 'Mini crossword',
+        value: top_mini_crossword,
+        inline: true
+    },
+    {
+        name: '',
+        value: '',
+        inline: false
+    },
+    {
+        name: 'Connections',
+        value: top_connections,
+        inline: true
+    },
+    {
+        name: 'Gamedle',
+        value: top_gamedle,
+        inline: true
+    }]
+  return fields
 }
 
 function messagePassesContentFilter(message) {
@@ -127,20 +130,34 @@ function getWordleEntry(message) {
   return wordleEntry
 }
 
+function getWordleEntryAsEmbedLink(entry) {
+  return '['
+  + entry.discord_server_profile_name 
+  + ' | ' 
+  + entry.score
+  + `](https://discord.com/channels/${entry.discord_author_id}/${entry.discord_channel_id}/${entry.discord_message_id})`
+}
+
 export const onChannelMessage = async(message) => { 
   const filterResult = messagePassesContentFilter(message)
   if (filterResult[0]) {
     try {
       const wordleEntry = getWordleEntry(message)
       message.channel.send(`${ wordleEntry.discord_server_profile_name} scored ${wordleEntry.score} on Wordle ${wordleEntry.type_day_number}`)
-      await Entry.create(wordleEntry).then((res) => {
-        if (message.channel.id === "1211255793622454273") {
-            message.channel.send(`\`\`\`Persisted document ${res}\`\`\``)
+      await Entry.create(wordleEntry) 
+      top_wordle = ''
+      const embedLoadData = await loadWordleEntries(true)
+      let iters = 0
+      embedLoadData.sorted_wordles.forEach(v => {
+        iters += 1
+        if (iters <= 5) {
+          top_wordle += '\n' + getWordleEntryAsEmbedLink(v)
+        }
+        if (iters === 5) {
+          top_wordle += '\n...'
         }
       })
-      const embedLoadData = await loadEntiesForEmbed(true)
-      console.info(embedLoadData)
-      top_wordle = '['+embedLoadData.top_wordle.discord_server_profile_name + ' | ' + embedLoadData.top_wordle.score+`](https://discord.com/channels/${embedLoadData.top_wordle.discord_author_id}/${embedLoadData.top_wordle.discord_channel_id}/${embedLoadData.top_wordle.discord_message_id})`
+      //top_wordle = getWordleEntryAsEmbedLink(embedLoadData.top_wordle)
       message.channel.send({ embeds: [getEmbeddList()], components: links });
     } catch (error) {
       console.error(error)
@@ -148,38 +165,11 @@ export const onChannelMessage = async(message) => {
   }
 
   // remove or move this shit
-  if (enabledChannelIDS.includes(message.channel.id) && !message.author.bot) {
-    const content = message.content
-    if (content.length > 500) {
-        return
-    }
-    if (content.startsWith('Wordle')) {
-        const re = /Wordle (\d{3,4}) ([X\d])\/\d/g;
-        if (!re.test(content)){
-            message.channel.send(`Regex invalidated your response - message content: ${content} <@${message.member.id}>`)
-        } else {
-            
-        }
-    } else if (content.startsWith('LIST ALL ENTRIES IN DATABASE PLEASE (IM A dummyyummshimmybummy)')) {
-        await Entry.find()
-        .then((res) => {
-            if (res.length > 1999) {
-                message.channel.send(`\`\`\`Recieved documents, but size was above limit (size: ${res.length})\`\`\``)
-            } else {
-                message.channel.send(`\`\`\`Recieved documents ${res}\`\`\``)
-            }
-        })
-    } else if (content.startsWith('BOBBY TABLES ALERT ALERT POOPDECK ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ')) {
-        await Entry.deleteMany({})
-        .then((res) => {
-            console.info(res)
-            message.channel.send(`\`\`\`Completed -> -${res.deletedCount}\`\`\``)
-        })
-    } else if (content.startsWith('test loadEntiesForEmbed')) {
-        await loadEntiesForEmbed(content.startsWith('test loadEntiesForEmbed today'))
-        .then((res) => {
-            message.channel.send(`\`\`\`Test output: -> -${res}\`\`\``)
-        })            
-    }
+  if (message.content.startsWith('DROP ENTRIES')) {
+    await Entry.deleteMany({})
+    .then((res) => {
+        console.info(res)
+        message.channel.send(`\`\`\`Drop completed -${res.deletedCount} entries\`\`\``)
+    })
   }
 }
