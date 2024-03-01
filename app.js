@@ -5,6 +5,7 @@ config()
 import { links } from './constants.js'
 import { initClient } from './bot.js'
 import { connectDB } from './db.js'
+import { enabledChannelIDS } from './constants.js'
 
 let top_wordle = '...'
 let top_mini_crossword = '...'
@@ -69,7 +70,7 @@ import Entry from './entry.js'
 import loadEntiesForEmbed from './loadEmbed.js'
 
 client.on('messageCreate', async (message) => {
-    if ((message.channel.id === "1211255793622454273" || message.channel.id === "1210534521573744720")  && !message.author.bot) {
+    if (enabledChannelIDS.includes(message.channel.id) && !message.author.bot) {
         const content = message.content
         if (content.length > 500) {
             return

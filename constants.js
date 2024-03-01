@@ -1,3 +1,8 @@
+export const enabledChannelIDS = [
+    "1211255793622454273",
+    "1210534521573744720"
+]
+
 export const commands = [
     {
       name: 'ping',
