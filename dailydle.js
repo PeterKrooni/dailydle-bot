@@ -8,50 +8,6 @@ let top_wordle = ''
 let top_mini_crossword = ''
 let top_connections = '🛠️'
 let top_gamedle = '🛠️'
-
-function sortBy(field) {
-  return function(a, b) {
-    return (a[field] > b[field]) - (a[field] < b[field])
-  };
-}
-
-async function loadWordleEntries(today) {
-    if (!today) {
-        const data = await Entry.find()
-        return data
-    }
-    const res = {}
-
-    const now = new Date()
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const data = await Entry.find({createdAt: {$gte: startOfToday}})
-
-    const dataCopy = JSON.parse(JSON.stringify(data))
-    const dataCopyArray = Object.values(dataCopy)
-    const wordles = dataCopyArray.filter(a => a.type === 'Wordle') 
-    wordles.sort(sortBy('score'))
-
-    res.sorted_wordles = wordles
-    res.top_wordle = wordles[0]
-    return res
-}
-
-async function loadMiniCrosswordEntries() {
-  const res = {}
-
-  const now = new Date()
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const data = await Entry.find({createdAt: {$gte: startOfToday}})
-
-  const dataCopy = JSON.parse(JSON.stringify(data))
-  const dataCopyArray = Object.values(dataCopy)
-  const minicrosswords = dataCopyArray.filter(a => a.type === 'MiniCrossword') 
-  minicrosswords.sort(sortBy('score'))
-
-  res.sorted_minicrosswords = minicrosswords
-  res.top_minicrossword = minicrosswords[0]
-  return res
-}
   
 function getEmbeddList() {
   return {
@@ -136,52 +92,10 @@ function getGameType(content) {
    }
 }
 
-function getWordleEntry(message) {
-  const splitContent = message.content.split(' ')
-  const wordleScore = splitContent[2].split('\n')[0] ?? splitContent[2]
-  const score = wordleScore[0] + wordleScore[1] + wordleScore[2]
-  const authorName = message.author.displayName
-  const wordleNr = splitContent[1]
-  const wordleEntry = {
-    discord_channel_id: message.channel.id,
-    discord_message_id: message.id ,
-    discord_name: authorName,
-    discord_server_profile_name: message.member.displayName,
-    discord_author_id: message.member.user.id,
-    type: "Wordle",
-    type_day_number: wordleNr,
-    score: score,
-  }
-  return wordleEntry
-}
-
-function getMiniCrosswordEntry(message) {
-  const score = message.content.split('&t=')[1]?.split('&c=')[0]
-  const authorName = message.author.displayName
-  const miniCrosswordNr = message.content.split('html?d=')[1]?.split('&t='+score)[0]
-  const miniCrosswordEntry = {
-    discord_channel_id: message.channel.id,
-    discord_message_id: message.id ,
-    discord_name: authorName,
-    discord_server_profile_name: message.member.displayName,
-    discord_author_id: message.member.user.id,
-    type: "MiniCrossword",
-    type_day_number: miniCrosswordNr,
-    score: score,
-  }
-  return miniCrosswordEntry
-
-}
-
-function getEntryAsEmbedLink(entry) {
-  return '['
-  + entry.discord_server_profile_name 
-  + ' | ' 
-  + entry.score
-  + `](https://discord.com/channels/${entry.discord_author_id}/${entry.discord_channel_id}/${entry.discord_message_id})`
-}
-
 // todo delete ealier entries from this bot 
+
+import { wordle } from './games/wordle.js'
+import { miniCrossword } from './games/minicrossword.js'
 
 export const onChannelMessage = async(message) => { 
   const filterResult = messagePassesContentFilter(message)
@@ -190,9 +104,15 @@ export const onChannelMessage = async(message) => {
       switch (filterResult[2]) {
         case 'Wordle':
           await wordle(message)
+          .then((res) => {
+            top_wordle = res
+          })
           break;
         case 'MiniCrossword':
           await miniCrossword(message)
+          .then((res) => {
+            top_mini_crossword = res
+          })
           break;
       }
       await updateEmbedMessageForChannel(message)
@@ -213,46 +133,10 @@ export const onChannelMessage = async(message) => {
   }
 }
 
-async function miniCrossword(message) {
-  const miniCrosswordEntry = getMiniCrosswordEntry(message)
-  message.channel.send(`${ miniCrosswordEntry.discord_server_profile_name} scored ${miniCrosswordEntry.score} on Mini crossword ${miniCrosswordEntry.type_day_number}`)
-  await Entry.create(miniCrosswordEntry)
-  top_mini_crossword = ''
-  const embedLoadData = await loadMiniCrosswordEntries()
-  let iters = 0
-  embedLoadData.sorted_minicrosswords.forEach(v => {
-    iters += 1
-    if (iters <= 5) {
-      top_mini_crossword += '\n' + getEntryAsEmbedLink(v)
-    }
-    if (iters === 5) {
-      top_mini_crossword += '\n...'
-    }
-  })
-}
-
 async function updateEmbedMessageForChannel(message) {
   // TODO 2fa
   //message.channel.bulkDelete(5)
   //.then(messages => console.log(`Bulk deleted ${messages.size} messages`))
   //.catch(console.error);
   message.channel.send({ embeds: [getEmbeddList()], components: links });
-}
-
-async function wordle(message) {
-  const wordleEntry = getWordleEntry(message)
-  message.channel.send(`${ wordleEntry.discord_server_profile_name} scored ${wordleEntry.score} on Wordle ${wordleEntry.type_day_number}`)
-  await Entry.create(wordleEntry) 
-  top_wordle = ''
-  const embedLoadData = await loadWordleEntries(true)
-  let iters = 0
-  embedLoadData.sorted_wordles.forEach(v => {
-    iters += 1
-    if (iters <= 5) {
-      top_wordle += '\n' + getEntryAsEmbedLink(v)
-    }
-    if (iters === 5) {
-      top_wordle += '\n...'
-    }
-  })
 }
