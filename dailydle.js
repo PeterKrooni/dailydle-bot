@@ -24,7 +24,7 @@ function getEmbeddList() {
       fields: getEmbedFields(),
       timestamp: new Date().toISOString(),
       footer: {
-          text: 'Version 0.1.0',
+          text: 'Version 0.1.1',
           icon_url: 'https://assets-prd.ignimgs.com/2022/04/15/wordle-1650045194490.jpg',
       },
   };
