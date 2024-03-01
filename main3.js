@@ -1,62 +1,10 @@
 
-import { EmbedBuilder, Client, Events, GatewayIntentBits, REST, Routes, Partials  } from 'discord.js';
-
 import { config } from 'dotenv'
 config()
 
-const commands = [
-  {
-    name: 'ping',
-    description: 'Replies with Pong!',
-  },
-  {    
-    name: 'list',
-    description: 'List dailydles'
-  },
-  {
-    name: 'terminate',
-    description: 'clean up client-server webhook and close down server'
-  },
-  {
-    name: 'monkeyembed',
-    description: 'amongus'
-  }
-];
-const links = [
-    {
-      "type": 1,
-      "components": [
-        {
-          "style": 5,
-          "label": `Wordle`,
-          "url": `https://www.nytimes.com/games/wordle/index.html`,
-          "disabled": false,
-          "type": 2
-        },
-        {
-          "style": 5,
-          "label": `Connections`,
-          "url": `https://www.nytimes.com/games/connections`,
-          "disabled": false,
-          "type": 2
-        },
-        {
-          "style": 5,
-          "label": `The Mini`,
-          "url": `https://www.nytimes.com/crosswords/game/mini`,
-          "disabled": false,
-          "type": 2
-        },
-        {
-          "style": 5,
-          "label": `Gamedle`,
-          "url": `https://www.gamedle.wtf`,
-          "disabled": false,
-          "type": 2
-        },
-      ]
-    }
-  ];
+import { links } from './constants.js'
+import { initClient } from './bot.js'
+import { connectDB } from './db.js'
 
 let top_wordle = '...'
 let top_mini_crossword = '...'
@@ -114,49 +62,9 @@ function getEmbeddList() {
     };
 }
 
+const client = await initClient()
+await connectDB()
 
-
-const cid = process.env.DISCORD_OAUTH_CLIENT_ID
-const btoken = process.env.DISCORD_BOT_TOKEN
-
-const rest = new REST({ version: '10' }).setToken(btoken);
-
-try {
-  console.log('Started refreshing application (/) commands.');
-
-  await rest.put(Routes.applicationCommands(cid), { body: commands });
-
-  console.log('Successfully reloaded application (/) commands.');
-} catch (error) {
-  console.error(error);
-}
-
-const client = new Client({ 
-    partials: [
-        Partials.Message,
-        Partials.Channel
-    ], 
-    intents: [
-        GatewayIntentBits.DirectMessages, 
-        GatewayIntentBits.DirectMessageReactions,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMessages, 
-        GatewayIntentBits.GuildMessageReactions, 
-        GatewayIntentBits.Guilds
-    ]
-    });
-
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-});
-
-import mongoose from 'mongoose';
-await mongoose.connect(process.env.DAILYDLE_DB_URI).then(() => {
-    console.log(`Connected to MongoDB`)
-}).catch ((error) => {
-    console.log(`Failed to connect to MongoDB: ${error}`)
-    process.exit(1)
-})
 import Entry from './entry.js'
 import loadEntiesForEmbed from './loadEmbed.js'
 
@@ -229,9 +137,6 @@ client.on('messageCreate', async (message) => {
         }
     }
 })
-
-client.login(btoken);
-
 
 process.stdin.resume(); // so the program will not close instantly
 async function exitHandler(err) {

@@ -1,15 +1,10 @@
 import mongoose from 'mongoose';
 
-const connectDB = async() => {
-    try{
-        const conn = await mongoose.connect(process.env.DAILYDLE_DB_URI)
-        console.log(`Connected to MongoDB: ${conn.connection.host}`.cyan.underline)
-    } catch (error) {
-        console.log(`Failed to connect to MongoDB: ${error}`)
+export const connectDB = async() => {
+    await mongoose.connect(process.env.DAILYDLE_DB_URI).then(() => {
+        console.log(`Connected to MongoDB (db.js::connectDB)`)
+    }).catch ((error) => {
+        console.log(`Failed to connect to MongoDB: ${error} (db.js::connectDB)`)
         process.exit(1)
-    }
-}
-
-module.exports = {
-    connectDB
+    })
 }
