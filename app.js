@@ -2,16 +2,8 @@
 import { config } from 'dotenv'
 config()
 
-import { links } from './constants.js'
 import { initClient } from './bot.js'
-import { connectDB } from './db.js'
-import { enabledChannelIDS } from './constants.js'
-
-let top_wordle = '...'
-let top_mini_crossword = '...'
-let top_connections = '...'
-let top_gamedle = '...'
-
+import { connectDB } from './db/util/db.js'
 
 const client = await initClient()
 await connectDB()

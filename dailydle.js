@@ -1,5 +1,5 @@
 
-import Entry from './entry.js'
+import Entry from './db/models/entry.js'
 
 import { links } from './constants.js'
 import { enabledChannelIDS } from './constants.js'
