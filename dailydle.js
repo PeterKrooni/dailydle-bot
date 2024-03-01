@@ -87,7 +87,63 @@ function getEmbeddList() {
   };
 }
 
-export const onChannelMessage = async(message) => {
+function messagePassesContentFilter(message) {
+  const content = message.content
+  if (!enabledChannelIDS.includes(message.channel.id)) {
+    return [false, 'channelid not in whitelist']
+  }
+  if (message.author.bot) {
+    return [false, 'filtered due to author being a bot']
+  }
+  if (!content.startsWith('Wordle')) {
+    return [false, 'startsWith check failed']
+  }
+  const re = /Wordle (\d{3,4}) ([X\d])\/\d/g;
+  if (!re.test(content)){
+    return [false, 'regex invalidated the message']
+  }
+  if (content.length > 500) {
+    return [false, 'message content was too long']
+  }
+  return [true, '']
+}
+
+export const onChannelMessage = async(message) => { 
+  const filterResult = messagePassesContentFilter(message)
+  if (filterResult[0]) {
+    const splitContent = message.content.split(' ')
+            const wordleScore = splitContent[2].split('\n')[0] ?? splitContent[2]
+            if (wordleScore) {
+                const authorName = message.author.displayName
+                const wordleNr = splitContent[1]
+                const score = wordleScore[0] + wordleScore[1] + wordleScore[2]
+                try {
+                    message.channel.send(`${ message.member.displayName} scored ${score} on Wordle ${wordleNr}`)
+                    await Entry.create({
+                        discord_channel_id: message.channel.id,
+                        discord_message_id: message.id ,
+                        discord_name: authorName,
+                        discord_server_profile_name: message.member.displayName,
+                        discord_author_id: message.member.user.id,
+                        type: "Wordle",
+                        type_day_number: wordleNr,
+                        score: score,
+                    }).then((res) => {
+                        if (message.channel.id === "1211255793622454273") {
+                            message.channel.send(`\`\`\`Persisted document ${res}\`\`\``)
+                        }
+                    })
+                    const embedLoadData = await loadEntiesForEmbed(true)
+                    console.info(embedLoadData)
+                    top_wordle = '['+embedLoadData.top_wordle.discord_server_profile_name + ' | ' + embedLoadData.top_wordle.score+`](https://discord.com/channels/${embedLoadData.top_wordle.discord_author_id}/${embedLoadData.top_wordle.discord_channel_id}/${embedLoadData.top_wordle.discord_message_id})`
+                    message.channel.send({ embeds: [getEmbeddList()], components: links });
+                } catch (error) {
+                    console.error('error: ', error)
+                }
+            }
+  }
+
+  // remove or move this shit
   if (enabledChannelIDS.includes(message.channel.id) && !message.author.bot) {
     const content = message.content
     if (content.length > 500) {
@@ -98,40 +154,7 @@ export const onChannelMessage = async(message) => {
         if (!re.test(content)){
             message.channel.send(`Regex invalidated your response - message content: ${content} <@${message.member.id}>`)
         } else {
-            const splitContent = content.split(' ')
-            const wordleScore = splitContent[2].split('\n')[0] ?? splitContent[2]
-            if (wordleScore) {
-                const authorName = message.author.displayName
-                const wordleNr = splitContent[1]
-                const score = wordleScore[0] + wordleScore[1] + wordleScore[2]
-                try {
-                    if (false){// authorName.length > 20 || wordleNr.length > 20 || score.length > 20 ) {
-                        message.channel.send(`Bot abuse detected. Self destructing in 10 seconds. (slutt å spamme din dfisdeiorgf)`)
-                    } else {
-                        message.channel.send(`${ message.member.displayName} scored ${score} on Wordle ${wordleNr}`)
-                        const newEntry = await Entry.create({
-                            discord_channel_id: message.channel.id,
-                            discord_message_id: message.id ,
-                            discord_name: authorName,
-                            discord_server_profile_name: message.member.displayName,
-                            discord_author_id: message.member.user.id,
-                            type: "Wordle",
-                            type_day_number: wordleNr,
-                            score: score,
-                        }).then((res) => {
-                            if (message.channel.id === "1211255793622454273") {
-                                message.channel.send(`\`\`\`Persisted document ${res}\`\`\``)
-                            }
-                        })
-                        const embedLoadData = await loadEntiesForEmbed(true)
-                        console.info(embedLoadData)
-                        top_wordle = '['+embedLoadData.top_wordle.discord_server_profile_name + ' | ' + embedLoadData.top_wordle.score+`](https://discord.com/channels/${embedLoadData.top_wordle.discord_author_id}/${embedLoadData.top_wordle.discord_channel_id}/${embedLoadData.top_wordle.discord_message_id})`
-                        message.channel.send({ embeds: [getEmbeddList()], components: links });
-                    }
-                } catch (error) {
-                    console.error('error: ', error)
-                }
-            }
+            
         }
     } else if (content.startsWith('LIST ALL ENTRIES IN DATABASE PLEASE (IM A dummyyummshimmybummy)')) {
         await Entry.find()
