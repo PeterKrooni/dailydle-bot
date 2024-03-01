@@ -13,7 +13,7 @@ export async function wordle(message) {
         top_wordle += '\n' + getEntryAsEmbedLink(v)
       }
       if (iters === 5) {
-        top_wordle += '\n...'
+        top_wordle += '\n + ' + embedLoadData.sorted_wordles.length
       }
     })
     return top_wordle

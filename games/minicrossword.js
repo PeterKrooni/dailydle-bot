@@ -13,7 +13,7 @@ export async function miniCrossword(message) {
         top_mini_crossword += '\n' + getEntryAsEmbedLink(v)
       }
       if (iters === 5) {
-        top_mini_crossword += '\n...'
+        top_mini_crossword += '\n + ' + embedLoadData.sorted_minicrosswords.length
       }
     })
     return top_mini_crossword
@@ -21,8 +21,8 @@ export async function miniCrossword(message) {
 
 function getMiniCrosswordEntry(message) {
     const score = message.content.split('&t=')[1]?.split('&c=')[0]
-    const authorName = message.author.displayName
     const miniCrosswordNr = message.content.split('html?d=')[1]?.split('&t='+score)[0]
+    const authorName = message.author.displayName
     const miniCrosswordEntry = {
       discord_channel_id: message.channel.id,
       discord_message_id: message.id ,

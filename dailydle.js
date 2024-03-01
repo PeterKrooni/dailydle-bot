@@ -74,6 +74,7 @@ function messagePassesContentFilter(message) {
   if (!content.startsWith('Wordle') && !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=')) {
     return [false, 'startsWith check failed']
   }
+  const mcRe = /https:\/\/www\.nytimes\.com\/.*&t=(\d+).*/g
   const re = /Wordle (\d{3,4}) ([X\d])\/\d/g;
   if (!re.test(content) && !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=')){
     return [false, 'regex invalidated the message']
