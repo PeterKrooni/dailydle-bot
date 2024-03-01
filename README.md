@@ -3,7 +3,7 @@ app.js = main
 https://www.mongodb.com/cloud/atlas/register
 ^^ opprette egen mango database Atlas instances.
 
-render.com <---- for å hoste node backend
+vercel -§ >>  efszewrfw render.com <---- for å hoste node backend
 
 .env
 ```.env
