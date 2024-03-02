@@ -6,7 +6,7 @@ import { enabledChannelIDS } from './constants.js'
 
 let top_wordle = ''
 let top_mini_crossword = ''
-let top_connections = '🛠️'
+let top_connections = ''
 let top_gamedle = '🛠️'
   
 function getEmbeddList() {
@@ -20,7 +20,7 @@ function getEmbeddList() {
       thumbnail: {
           url: 'https://1000logos.net/wp-content/uploads/2023/05/Wordle-Emblem.png'
       },
-      description: 'Dailydle - Fredag 1. mars, 2024',
+      description: 'Dailydle - ' + new Date().toLocaleString('no-nb', {weekday:'long', day:'numeric', year:'numeric', month:'long'}),
       fields: getEmbedFields(),
       timestamp: new Date().toISOString(),
       footer: {
@@ -71,12 +71,12 @@ function messagePassesContentFilter(message) {
   if (message.author.bot) {
     return [false, 'filtered due to author being a bot']
   }
-  if (!content.startsWith('Wordle') && !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=')) {
+  if (!content.startsWith('Wordle') && !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=') && !content.startsWith("Connections")) {
     return [false, 'startsWith check failed']
   }
   const mcRe = /https:\/\/www\.nytimes\.com\/.*&t=(\d+).*/g
   const re = /Wordle (\d{3,4}) ([X\d])\/\d/g;
-  if (!re.test(content) && !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=')){
+  if (!re.test(content) && !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=') && !content.startsWith("Connections")){
     return [false, 'regex invalidated the message']
   }
   if (content.length > 500) {
@@ -90,6 +90,8 @@ function getGameType(content) {
     return 'Wordle'
    } else if (content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=')){
     return 'MiniCrossword'
+   } else if (content.startsWith("Connections")) {
+    return "Connections"
    }
 }
 
@@ -97,6 +99,7 @@ function getGameType(content) {
 
 import { wordle } from './games/wordle.js'
 import { miniCrossword } from './games/minicrossword.js'
+import { connections } from './games/connections.js'
 
 export const onChannelMessage = async(message) => { 
   const filterResult = messagePassesContentFilter(message)
@@ -115,6 +118,11 @@ export const onChannelMessage = async(message) => {
             top_mini_crossword = res
           })
           break;
+        case "Connections":
+          await connections(message)
+          .then((res) => {
+            top_connections = res
+          })
       }
       await updateEmbedMessageForChannel(message)
     } catch (error) {
