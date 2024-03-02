@@ -10,19 +10,6 @@ export async function connections(message) {
         message.channel.send(`${ connectionsEntry.discord_server_profile_name} did Connections ${connectionsEntry.type_day_number} with ${connectionsEntry.score} mistakes`)   
     }
     await Entry.create(connectionsEntry)
-    let top_mini_crossword = ''
-    const embedLoadData = await loadConnectionsEntries()
-    let iters = 0
-    embedLoadData.sorted_connections.forEach(v => {
-      iters += 1
-      if (iters <= 5) {
-        top_mini_crossword += '\n' + getEntryAsEmbedLink(v)
-      }
-      if (iters === 5) {
-        top_mini_crossword += '\n + ' + embedLoadData.sorted_connections.length
-      }
-    })
-    return top_mini_crossword
 }
 
 function getConnectionsEntry(message) {
@@ -49,34 +36,3 @@ function getConnectionsEntry(message) {
     }
     return connectionsEntry
 }
-
-async function loadConnectionsEntries() {
-    const res = {}
-  
-    const now = new Date()
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const data = await Entry.find({createdAt: {$gte: startOfToday}})
-  
-    const dataCopy = JSON.parse(JSON.stringify(data))
-    const dataCopyArray = Object.values(dataCopy)
-    const connections = dataCopyArray.filter(a => a.type === 'Connections') 
-    connections.sort(sortBy('score'))
-  
-    res.sorted_connections = connections
-    res.top_connections = connections[0]
-    return res
-}
-
-function sortBy(field) {
-    return function(a, b) {
-      return (a[field] > b[field]) - (a[field] < b[field])
-    };
-}
-
-function getEntryAsEmbedLink(entry) {
-    return '['
-    + entry.discord_server_profile_name 
-    + ' | ' 
-    + entry.score
-    + `](https://discord.com/channels/${entry.discord_author_id}/${entry.discord_channel_id}/${entry.discord_message_id})`
-  }

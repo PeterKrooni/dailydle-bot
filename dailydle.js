@@ -9,6 +9,74 @@ let top_mini_crossword = ''
 let top_connections = ''
 let top_gamedle = '🛠️'
   
+async function loadEntriesForEmbed() {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const data = await Entry.find({createdAt: {$gte: startOfToday}})
+  const dataCopy = JSON.parse(JSON.stringify(data))
+  const dataCopyArray = Object.values(dataCopy)
+  const connections = dataCopyArray.filter(a => a.type === 'Connections') 
+  connections.sort(connectionsSort('score'))
+  const wordles = dataCopyArray.filter(a => a.type === 'Wordle') 
+  wordles.sort(wordleSort('score'))
+  const minicrosswords = dataCopyArray.filter(a => a.type === 'MiniCrossword') 
+  minicrosswords.sort(miniCrosswordsSort('score'))
+  
+  let iters = 0
+  connections.forEach(c => {
+    if (iters <= 5) {
+      top_connections += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_connections += '\n' + connections.length
+    }
+  })
+    
+  iters = 0
+  wordles.forEach(c => {
+    if (iters <= 5) {
+      top_wordle += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_wordle += '\n' + wordles.length
+    }
+  })
+    
+  iters = 0
+  minicrosswords.forEach(c => {
+    if (iters <= 5) {
+      top_mini_crossword += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_connections += '\n' + minicrosswords.length
+    }
+  })
+  
+}
+
+function getEntryAsEmbedLink(entry) {
+  return '['
+  + entry.discord_server_profile_name 
+  + ' | ' 
+  + entry.score
+  + `](https://discord.com/channels/${entry.discord_author_id}/${entry.discord_channel_id}/${entry.discord_message_id})`
+}
+function wordleSort(field) {
+  return function(a, b) {
+    return (a[field] > b[field]) - (a[field] < b[field])
+  };
+}
+function connectionsSort(field) {
+  return function(a, b) {
+    return (a[field] > b[field]) - (a[field] < b[field])
+  };
+}
+function miniCrosswordsSort(field) {
+  return function(a, b) {
+    return (a[field] > b[field]) - (a[field] < b[field])
+  };
+}
+
 function getEmbeddList() {
   return {
       color: 0x498f49,
@@ -24,7 +92,7 @@ function getEmbeddList() {
       fields: getEmbedFields(),
       timestamp: new Date().toISOString(),
       footer: {
-          text: 'Version 0.1.1',
+          text: 'Version 0.1.2',
           icon_url: 'https://assets-prd.ignimgs.com/2022/04/15/wordle-1650045194490.jpg',
       },
   };
@@ -108,22 +176,14 @@ export const onChannelMessage = async(message) => {
       switch (filterResult[2]) {
         case 'Wordle':
           await wordle(message)
-          .then((res) => {
-            top_wordle = res
-          })
           break;
         case 'MiniCrossword':
           await miniCrossword(message)
-          .then((res) => {
-            top_mini_crossword = res
-          })
           break;
         case "Connections":
           await connections(message)
-          .then((res) => {
-            top_connections = res
-          })
       }
+      await loadEntriesForEmbed()
       await updateEmbedMessageForChannel(message)
     } catch (error) {
       console.error(error)
