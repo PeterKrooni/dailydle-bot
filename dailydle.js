@@ -133,7 +133,7 @@ export const onChannelMessage = async(message) => {
   }
 
   // remove or move this shit
-  if (message.content.startsWith('DROP ENTRIES')) {
+  if (message.content.startsWith('DROP ENTRIES') && message.message.user.id.startsWith('179293169849')) {
     await Entry.deleteMany({})
     .then((res) => {
         console.info(res)
