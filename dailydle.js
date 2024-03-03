@@ -10,6 +10,10 @@ let top_connections = ''
 let top_gamedle = '🛠️'
   
 async function loadEntriesForEmbed() {
+  top_wordle = ''
+  top_mini_crossword = ''
+  top_connections = ''
+  top_gamedle = '🛠️'
   const now = new Date()
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const data = await Entry.find({createdAt: {$gte: startOfToday}})
@@ -24,31 +28,34 @@ async function loadEntriesForEmbed() {
   
   let iters = 0
   connections.forEach(c => {
+    iters ++
     if (iters <= 5) {
       top_connections += '\n' + getEntryAsEmbedLink(c)
     }
     if (iters === 5) {
-      top_connections += '\n' + connections.length
+      top_connections += '\n+ ' + connections.length
     }
   })
     
   iters = 0
   wordles.forEach(c => {
+    iters ++
     if (iters <= 5) {
       top_wordle += '\n' + getEntryAsEmbedLink(c)
     }
     if (iters === 5) {
-      top_wordle += '\n' + wordles.length
+      top_wordle += '\n+ ' + wordles.length
     }
   })
     
   iters = 0
   minicrosswords.forEach(c => {
+    iters ++
     if (iters <= 5) {
       top_mini_crossword += '\n' + getEntryAsEmbedLink(c)
     }
     if (iters === 5) {
-      top_connections += '\n' + minicrosswords.length
+      top_connections += '\n+ ' + minicrosswords.length
     }
   })
   
@@ -193,10 +200,9 @@ export const onChannelMessage = async(message) => {
   }
 
   // remove or move this shit
-  if (message.content.startsWith('DROP ENTRIES') && message.message.user.id.startsWith('179293169849')) {
+  if (message.content.startsWith('DROP ENTRIES') && message.member?.user?.id?.startsWith('179293169849')) {
     await Entry.deleteMany({})
     .then((res) => {
-        console.info(res)
         message.channel.send(`\`\`\`Drop completed -${res.deletedCount} entries\`\`\``)
     })
   }
