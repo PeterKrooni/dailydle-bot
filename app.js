@@ -1,6 +1,6 @@
 
 import { config } from 'dotenv'
-config()
+config('.env.test.local')
 
 import { initClient, addBotCleanupOnProcessExitHandlers } from './bot.js'
 import { connectDB } from './db/util/db.js'

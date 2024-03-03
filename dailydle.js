@@ -199,8 +199,8 @@ export const onChannelMessage = async(message) => {
     console.error(filterResult[1])
   }
 
-  // remove or move this shit
-  if (message.content.startsWith('DROP ENTRIES') && message.member?.user?.id?.startsWith('179293169849')) {
+  // filtering here doesnt work
+  if (message.channel.id == '1211255793622454273' && message.content.startsWith('DROP ENTRIES') && message.member?.user?.id?.startsWith('179293169849')) {
     await Entry.deleteMany({})
     .then((res) => {
         message.channel.send(`\`\`\`Drop completed -${res.deletedCount} entries\`\`\``)
