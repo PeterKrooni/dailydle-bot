@@ -1,44 +1,44 @@
 import Entry from '../db/models/entry.js'
 
+const REGEX_CONNECTIONS = /Connections\s\sPuzzle\s\#(\d+)\s([\uD83D\uDFE6-\uDFEA\s]+)/
+
 export async function connections(message) {
   const connectionsEntry = getConnectionsEntry(message)
+
+  const displayName = connectionsEntry.discord_server_profile_name
+  const day = connectionsEntry.type_day_number
+
+  let msg = ''
   if (connectionsEntry.score === 4) {
-    message.channel.send(
-      `${connectionsEntry.discord_server_profile_name} failed Connections ${connectionsEntry.type_day_number} after ${connectionsEntry.score} mistakes`,
-    )
+    msg = `${displayName} failed Connections ${day} after 4 mistakes`
   } else if (connectionsEntry.score === 1) {
-    message.channel.send(
-      `${connectionsEntry.discord_server_profile_name} did Connections ${connectionsEntry.type_day_number} with ${connectionsEntry.score} mistake`,
-    )
+    msg = `${displayName} did Connections ${day} with 1 mistake`
   } else {
-    message.channel.send(
-      `${connectionsEntry.discord_server_profile_name} did Connections ${connectionsEntry.type_day_number} with ${connectionsEntry.score} mistakes`,
-    )
+    msg = `${displayName} did Connections ${day} with ${connectionsEntry.score} mistakes`
   }
+
+  message.channel.send(msg)
   await Entry.create(connectionsEntry)
 }
 
 function getConnectionsEntry(message) {
-  const connectionsNr = message.content.split('\n')[1].split('Puzzle #')[1]
-  const inputArray = message.content.split('Puzzle #' + connectionsNr)[1]
-  let score = 0
-  inputArray.split('\n').forEach((ia) => {
-    let iats = ia.trim().split('\ud83d')
-    if (iats.length === 5) {
-      iats.shift()
-      score += [...new Set(iats.filter((i) => i !== '' && i != ['', ''] && i != []))].length === 1 ? 0 : 1
-    }
-  })
-  const authorName = message.author.displayName
+  const [day, input] = message.content.match(REGEX_CONNECTIONS).splice(1, 3)
+
+  const score = input.split('\n').reduce((sum, line) => sum += new Set(line.trim().split('\uD83D').filter((n) => n !== '')).size == 1 ? 0 : 1, 0)
+
   const connectionsEntry = {
     discord_channel_id: message.channel.id,
     discord_message_id: message.id,
-    discord_name: authorName,
+    discord_name: message.author.displayName,
     discord_server_profile_name: message.member.displayName,
     discord_author_id: message.member.user.id,
     type: 'Connections',
-    type_day_number: connectionsNr,
+    type_day_number: day,
     score: score,
   }
   return connectionsEntry
+}
+
+export function validMessage(message) {
+  return REGEX_CONNECTIONS.test(message)
 }

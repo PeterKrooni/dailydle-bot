@@ -1,15 +1,19 @@
 import { config } from 'dotenv'
-config()
-
 import { initClient, addBotCleanupOnProcessExitHandlers } from './bot.js'
 import { connectDB } from './db/util/db.js'
-
-const client = await initClient()
-await connectDB()
-await addBotCleanupOnProcessExitHandlers(client)
-
 import { onChannelMessage } from './dailydle.js'
 
-client.on('messageCreate', async (message) => {
-  await onChannelMessage(message)
-})
+config()
+
+const client = await initClient()
+if (client === null) {
+  console.log("Could not create client. Exiting...")
+  process.exit(1)
+} else {
+  await connectDB()
+  await addBotCleanupOnProcessExitHandlers(client)
+
+  client.on('messageCreate', async (message) => {
+    await onChannelMessage(message)
+  })
+}
