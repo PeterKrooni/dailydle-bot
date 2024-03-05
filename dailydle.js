@@ -68,20 +68,29 @@ function getEntryAsEmbedLink(entry) {
   + entry.score
   + `](https://discord.com/channels/${entry.discord_author_id}/${entry.discord_channel_id}/${entry.discord_message_id})`
 }
+
 function wordleSort(field) {
   return function(a, b) {
-    return (a[field] > b[field]) - (a[field] < b[field])
-  };
+    // Elements coming from JSON entries are strings, convert to integers.
+    let x = parseInt(a[field])
+    let y = parseInt(b[field])
+
+    // The order we want is: `1, 2, 3, 4, 5, 6, X`, so we always say NaN
+    // values ('X') are larger, otherwise sort as usual.
+    return (isNaN(x) ? 1 : (isNaN(y) ? -1 : x - y))
+  }
 }
 function connectionsSort(field) {
-  return function(a, b) {
-    return (a[field] > b[field]) - (a[field] < b[field])
-  };
+  // If we get a NaN value here something's fucked, just put it at the 
+  // end of the list 😊 otherwise we want ascending order, so wordleSort
+  // works fine:
+  return wordleSort(field)
 }
 function miniCrosswordsSort(field) {
-  return function(a, b) {
-    return (a[field] > b[field]) - (a[field] < b[field])
-  };
+  // If we get a NaN value here something's fucked, just put it at the 
+  // end of the list 😊 otherwise we want ascending order, so wordleSort
+  // works fine:
+  return wordleSort(field)
 }
 
 function getEmbeddList() {
