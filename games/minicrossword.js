@@ -7,8 +7,21 @@ export async function miniCrossword(message) {
   message.channel.send(
     `${miniCrosswordEntry.discord_server_profile_name} did Mini crossword ${miniCrosswordEntry.type_day_number} in ${miniCrosswordEntry.score} seconds`,
   )
-  await Entry.create(miniCrosswordEntry)
+
+  await upsert(miniCrosswordEntry)
 }
+
+async function upsert(miniCrosswordEntry) {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  await Entry.findOneAndUpdate({
+    createdAt: { $gte: startOfToday },
+    type: 'MiniCrossword',
+    discord_author_id: miniCrosswordEntry.discord_author_id,
+    type_day_number: miniCrosswordEntry.type_day_number
+  }, miniCrosswordEntry, { upsert: true })
+}
+
 
 function getMiniCrosswordEntry(message) {
   // Matches day (e.g. '2024-03-05') and time (e.g. '59')

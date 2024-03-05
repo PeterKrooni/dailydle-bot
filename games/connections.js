@@ -18,8 +18,20 @@ export async function connections(message) {
   }
 
   message.channel.send(msg)
-  await Entry.create(connectionsEntry)
+  await upsert(connectionsEntry)
 }
+
+async function upsert(connectionsEntry) {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  await Entry.findOneAndUpdate({
+    createdAt: { $gte: startOfToday },
+    type: 'Connections',
+    discord_author_id: connectionsEntry.discord_author_id,
+    type_day_number: connectionsEntry.type_day_number
+  }, connectionsEntry, { upsert: true })
+}
+
 
 function getConnectionsEntry(message) {
   const [day, input] = message.content.match(REGEX_CONNECTIONS).splice(1, 3)

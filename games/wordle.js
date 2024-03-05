@@ -9,7 +9,18 @@ export async function wordle(message) {
     `${wordleEntry.discord_server_profile_name} scored ${wordleEntry.score} on Wordle ${wordleEntry.type_day_number}`,
   )
 
-  await Entry.create(wordleEntry)
+  await upsert(wordleEntry)
+}
+
+async function upsert(wordleEntry) {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  await Entry.findOneAndUpdate({
+    createdAt: { $gte: startOfToday },
+    type: 'Wordle',
+    discord_author_id: wordleEntry.discord_author_id,
+    type_day_number: wordleEntry.type_day_number
+  }, wordleEntry, { upsert: true })
 }
 
 function getWordleEntry(message) {
