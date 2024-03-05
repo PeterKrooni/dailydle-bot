@@ -6,14 +6,16 @@ import { onChannelMessage } from './dailydle.js'
 config()
 
 const client = await initClient()
-if (client === null) {
+
+if (!client) {
   console.log("Could not create client. Exiting...")
   process.exit(1)
-} else {
-  await connectDB()
-  await addBotCleanupOnProcessExitHandlers(client)
+} 
 
-  client.on('messageCreate', async (message) => {
-    await onChannelMessage(message)
-  })
-}
+await connectDB()
+await addBotCleanupOnProcessExitHandlers(client)
+
+client.on('messageCreate', async (message) => {
+  await onChannelMessage(message)
+})
+
