@@ -1,5 +1,7 @@
 import Entry from '../db/models/entry.js'
 
+const REGEX_CONNECTIONS = /Connections\s\sPuzzle\s\#(\d+)\s([\uD83D\uDFE6-\uDFEA\s]+)/
+
 export async function connections(message) {
   const connectionsEntry = getConnectionsEntry(message)
 
@@ -8,7 +10,7 @@ export async function connections(message) {
 
   let msg = ''
   if (connectionsEntry.score === 4) {
-    msg `${displayName} failed Connections ${day} after 4 mistakes`
+    msg = `${displayName} failed Connections ${day} after 4 mistakes`
   } else if (connectionsEntry.score === 1) {
     msg = `${displayName} did Connections ${day} with 1 mistake`
   } else {
@@ -20,8 +22,7 @@ export async function connections(message) {
 }
 
 function getConnectionsEntry(message) {
-  const re = /Connections\s\sPuzzle\s\#(\d+)\s([\uD83D\uDFE6-\uDFEA\s]+)/
-  const [day, input] = message.match(re).splice(1, 3)
+  const [day, input] = message.content.match(REGEX_CONNECTIONS).splice(1, 3)
 
   const score = input.split('\n').reduce((sum, line) => sum += new Set(line.trim().split('\uD83D').filter((n) => n !== '')).size == 1 ? 0 : 1, 0)
 
@@ -39,6 +40,5 @@ function getConnectionsEntry(message) {
 }
 
 export function validMessage(message) {
-  const re = /Connections\s\nPuzzle\s\#\d+/g
-  return re.test(message)
+  return REGEX_CONNECTIONS.test(message)
 }

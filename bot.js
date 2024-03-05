@@ -12,6 +12,7 @@ export async function initClient() {
     console.log('Successfully reloaded application (/) commands.')
   } catch (error) {
     console.error(error)
+    return
   }
 
   const client = new Client({
@@ -34,26 +35,17 @@ export async function initClient() {
 
 export async function addBotCleanupOnProcessExitHandlers(client) {
   process.stdin.resume() // so the program will not close instantly
-  async function exitHandler(err, client) {
-    console.info('EXITHANDLER: recieved exit command, cleaning up client connection', err)
+  async function exitHandler() {
+    console.info('EXITHANDLER: received exit command')
     await client
       .destroy()
-      .then((res) => {
+      .then(() => {
+        console.log("Client destroyed. Exiting")
         process.exit()
       })
-      .catch((err) => 87)
+      .catch((err) => console.log(err))
   }
 
   // do something when app is closing
-  process.on('exit', exitHandler.bind(null, client, { cleanup: true }))
-
-  // catches ctrl+c event
-  process.on('SIGINT', exitHandler.bind(null, client, { exit: true }))
-
-  // catches "kill pid" (for example: nodemon restart)
-  process.on('SIGUSR1', exitHandler.bind(null, client, { exit: true }))
-  process.on('SIGUSR2', exitHandler.bind(null, client, { exit: true }))
-
-  // catches uncaught exceptions
-  process.on('uncaughtException', exitHandler.bind(null, client, { exit: true }))
+  process.on('SIGINT', exitHandler.bind())
 }

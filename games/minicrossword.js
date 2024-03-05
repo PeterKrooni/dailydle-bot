@@ -1,5 +1,7 @@
 import Entry from '../db/models/entry.js'
 
+const REGEX_MINI_CROSSWORD = /https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/
+
 export async function miniCrossword(message) {
   const miniCrosswordEntry = getMiniCrosswordEntry(message)
   message.channel.send(
@@ -10,8 +12,7 @@ export async function miniCrossword(message) {
 
 function getMiniCrosswordEntry(message) {
   // Matches day (e.g. '2024-03-05') and time (e.g. '59')
-  const re = /https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/
-  const [day, score] = message.content.match(re).slice(1, 3)
+  const [day, score] = message.content.match(REGEX_MINI_CROSSWORD).slice(1, 3)
 
   const miniCrosswordEntry = {
     discord_channel_id: message.channel.id,
@@ -27,6 +28,5 @@ function getMiniCrosswordEntry(message) {
 }
 
 export function validMessage(message) {
-  const re = /https:\/\/www\.nytimes\.com\/.*&t=\d+.*/g
-  return re.test(message)
+  return REGEX_MINI_CROSSWORD.test(message)
 }

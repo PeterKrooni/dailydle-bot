@@ -195,6 +195,8 @@ function getGameType(content) {
   if (Connections.validMessage(content)) {
     return 'Connections'
   }
+
+  return null
 }
 
 // todo delete ealier entries from this bot
@@ -220,7 +222,7 @@ export const onChannelMessage = async (message) => {
       console.error(error)
     }
   } else {
-    console.error(`Message filter failed: ${errMsg}`)
+    // console.error(`Message filter failed: ${errMsg}`)
   }
 
   // filtering here doesnt work
