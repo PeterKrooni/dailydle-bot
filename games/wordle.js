@@ -9,20 +9,26 @@ export async function wordle(message) {
 }
 
 function getWordleEntry(message) {
-  const splitContent = message.content.split(' ')
-  const wordleScore = splitContent[2].split('\n')[0] ?? splitContent[2]
-  const score = wordleScore[0] + wordleScore[1] + wordleScore[2]
-  const authorName = message.author.displayName
-  const wordleNr = splitContent[1]
+  // Matches day (e.g. '990') and score/total (e.g. '1/6')
+  const re = /Wordle\s(\d+)\s([\dX]\/\d)/
+
+  // slice because the first element is the entire matched region
+  const [day, score] = message.content.match(re).slice(1,3)
+  
   const wordleEntry = {
     discord_channel_id: message.channel.id,
     discord_message_id: message.id,
-    discord_name: authorName,
+    discord_name: message.author.displayName,
     discord_server_profile_name: message.member.displayName,
     discord_author_id: message.member.user.id,
     type: 'Wordle',
-    type_day_number: wordleNr,
+    type_day_number: day,
     score: score,
   }
   return wordleEntry
+}
+
+export function validMessage(message) {
+  const re = /Wordle\s\d+\s[\dX]\/\d/g
+  re.test(message)
 }

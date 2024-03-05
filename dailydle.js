@@ -158,63 +158,61 @@ function getEmbedFields() {
 
 function messagePassesContentFilter(message) {
   const content = message.content
+
   if (!enabledChannelIDS.includes(message.channel.id)) {
-    return [false, 'channelid not in whitelist']
+    return [false, 'Channel ID is not in whitelist']
   }
+
   if (message.author.bot) {
-    return [false, 'filtered due to author being a bot']
+    return [false, 'Message author is a bot']
   }
-  if (
-    !content.startsWith('Wordle') &&
-    !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=') &&
-    !content.startsWith('Connections')
-  ) {
-    return [false, 'startsWith check failed']
-  }
-  const mcRe = /https:\/\/www\.nytimes\.com\/.*&t=(\d+).*/g
-  const re = /Wordle (\d{3,4}) ([X\d])\/\d/g
-  if (
-    !re.test(content) &&
-    !content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=') &&
-    !content.startsWith('Connections')
-  ) {
-    return [false, 'regex invalidated the message']
-  }
+
   if (content.length > 500) {
-    return [false, 'message content was too long']
+    return [false, 'Message content was too long']
   }
-  return [true, '', getGameType(message.content)]
+
+  const gameType = getGameType(content)
+  if (gameType === null) {
+    return [false, 'Could not determine game type']
+  }
+
+  return [true, '', gameType]
 }
 
+import * as Wordle from './games/wordle.js'
+import * as MiniCrossword from './games/minicrossword.js'
+import * as Connections from './games/connections.js'
+
 function getGameType(content) {
-  if (content.startsWith('Wordle')) {
+  if (Wordle.validMessage(content)) {
     return 'Wordle'
-  } else if (content.startsWith('https://www.nytimes.com/badges/games/mini.html?d=')) {
+  }
+
+  if (MiniCrossword.validMessage(content)) {
     return 'MiniCrossword'
-  } else if (content.startsWith('Connections')) {
+  }
+
+  if (Connections.validMessage(content)) {
     return 'Connections'
   }
 }
 
 // todo delete ealier entries from this bot
 
-import { wordle } from './games/wordle.js'
-import { miniCrossword } from './games/minicrossword.js'
-import { connections } from './games/connections.js'
 
 export const onChannelMessage = async (message) => {
-  const filterResult = messagePassesContentFilter(message)
-  if (filterResult[0]) {
+  const [validMessage, errMsg, gameType] = messagePassesContentFilter(message)
+  if (validMessage) {
     try {
-      switch (filterResult[2]) {
+      switch (gameType) {
         case 'Wordle':
-          await wordle(message)
+          await Wordle.wordle(message)
           break
         case 'MiniCrossword':
-          await miniCrossword(message)
+          await MiniCrossword.miniCrossword(message)
           break
         case 'Connections':
-          await connections(message)
+          await Connections.connections(message)
       }
       await loadEntriesForEmbed()
       await updateEmbedMessageForChannel(message)
@@ -222,7 +220,7 @@ export const onChannelMessage = async (message) => {
       console.error(error)
     }
   } else {
-    console.error(filterResult[1])
+    console.error(`Message filter failed: ${errMsg}`)
   }
 
   // filtering here doesnt work

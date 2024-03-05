@@ -9,18 +9,24 @@ export async function miniCrossword(message) {
 }
 
 function getMiniCrosswordEntry(message) {
-  const score = message.content.split('&t=')[1]?.split('&c=')[0]
-  const miniCrosswordNr = message.content.split('html?d=')[1]?.split('&t=' + score)[0]
-  const authorName = message.author.displayName
+  // Matches day (e.g. '2024-03-05') and time (e.g. '59')
+  const re = /https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/
+  const [day, score] = message.content.match(re).slice(1, 3)
+
   const miniCrosswordEntry = {
     discord_channel_id: message.channel.id,
     discord_message_id: message.id,
-    discord_name: authorName,
+    discord_name: message.author.displayName,
     discord_server_profile_name: message.member.displayName,
     discord_author_id: message.member.user.id,
     type: 'MiniCrossword',
-    type_day_number: miniCrosswordNr,
+    type_day_number: day,
     score: score,
   }
   return miniCrosswordEntry
+}
+
+export function validMessage(message) {
+  const re = /https:\/\/www\.nytimes\.com\/.*&t=\d+.*/g
+  return re.test(message)
 }
