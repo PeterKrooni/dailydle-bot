@@ -1,4 +1,3 @@
-
 import { config } from 'dotenv'
 config()
 
@@ -12,5 +11,5 @@ await addBotCleanupOnProcessExitHandlers(client)
 import { onChannelMessage } from './dailydle.js'
 
 client.on('messageCreate', async (message) => {
-    await onChannelMessage(message)
+  await onChannelMessage(message)
 })

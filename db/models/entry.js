@@ -1,6 +1,7 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
-const entrySchema = mongoose.Schema({
+const entrySchema = mongoose.Schema(
+  {
     discord_server_profile_name: String,
     discord_name: String,
     discord_message_id: String,
@@ -9,11 +10,12 @@ const entrySchema = mongoose.Schema({
     type: String,
     type_day_number: String,
     score: String,
-}, {
-timestamps: true
-}
+  },
+  {
+    timestamps: true,
+  },
 )
 
-const Entry = mongoose.model("Entry", entrySchema)
+const Entry = mongoose.model('Entry', entrySchema)
 
-export default Entry;
+export default Entry
