@@ -204,25 +204,29 @@ function getGameType(content) {
 
 export const onChannelMessage = async (message) => {
   const [validMessage, errMsg, gameType] = messagePassesContentFilter(message)
-  if (validMessage) {
-    try {
-      switch (gameType) {
-        case 'Wordle':
-          await Wordle.wordle(message)
-          break
-        case 'MiniCrossword':
-          await MiniCrossword.miniCrossword(message)
-          break
-        case 'Connections':
-          await Connections.connections(message)
-      }
-      await loadEntriesForEmbed()
-      await updateEmbedMessageForChannel(message)
-    } catch (error) {
-      console.error(error)
+  
+  if (!validMessage) {
+    console.log("Recived a non-game message, ignoring..") //TODO add a logging lib? e.g Pino 
+    return
+  }
+  
+  try {
+    switch (gameType) {
+      case 'Wordle':
+        await Wordle.wordle(message)
+        break
+      case 'MiniCrossword':
+        await MiniCrossword.miniCrossword(message)
+        break
+      case 'Connections':
+        await Connections.connections(message)
     }
-  } else {
-    // console.error(`Message filter failed: ${errMsg}`)
+
+    await loadEntriesForEmbed()
+    await updateEmbedMessageForChannel(message)
+
+  } catch (error) {
+    console.error(error)
   }
 
   // filtering here doesnt work
