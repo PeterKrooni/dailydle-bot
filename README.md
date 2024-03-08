@@ -1,22 +1,57 @@
-app.js = main
+## About
 
-https://www.mongodb.com/cloud/atlas/register
-^^ opprette egen mango database Atlas instances.
+A discord bot to keep track of daily games.
+Written in javascript with node, with mongoDB as the database.
 
-vercel -§ >>  efszewrfw render.com <---- for å hoste node backend
+## General
+
+`app.js` is the entrypoint of the application.
+
+### Configuration
 
 .env
+
 ```.env
 # hentes på discord dev portal (under /applications)
 DISCORD_OAUTH_CLIENT_ID=
 DISCORD_OAUTH_CLIENT_SECRET=
 DISCORD_BOT_TOKEN=
 
-# denne her må være en MongoDB Atlas URI
+# denne her må være en MongoDB connection string
 DAILYDLE_DB_URI=very cool repo :D
-``` 
+```
 
-jakob snorrason
+### Deployment & hosting
+
+#### App
+
+Host the application on a managed node provider of your choice, e.g. [Render](https://render.com/), [Vercel](https://vercel.com/) or similar. Can also be deployed as a docker container.
+
+#### Database
+
+Use a managed solution sucha as [MongoDB cloud atlas](https://www.mongodb.com/cloud/atlas/register) or deploy as a docker container.
+
+## How to run
+
+### Native
+
+Use `npm install` to install depdendecies.
+Use `npm start` run the bot.
+
+### Docker
+
+Use `docker compose up` to start bot and database as docker containers.
+
+## Requirements
+
+- Node
+- Docker (optional)
+
+## Good boys
+
+Jakob Snorrason
+
+## Important
 
 ![GOGOGAGA](https://preview.redd.it/0za8b7dxvjjc1.png?auto=webp&s=d9a37170213f061f85092018180fec1ae978c603)
 ![oiwhjef](https://preview.redd.it/y695104kc2kc1.jpeg?auto=webp&s=d5c3fbc971b3dffa7d6e98175552a0b769b59abe)
