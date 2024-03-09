@@ -4,10 +4,11 @@ const REGEX_MINI_CROSSWORD = /https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+
 
 export async function miniCrossword(message) {
   const miniCrosswordEntry = getMiniCrosswordEntry(message)
-  message.channel.send(
+  const sent = await message.channel.send(
     `${miniCrosswordEntry.discord_server_profile_name} did Mini crossword ${miniCrosswordEntry.type_day_number} in ${miniCrosswordEntry.score} seconds`,
   )
-
+  message.react('✅')
+  sent.react('📋')
   await upsert(miniCrosswordEntry)
 }
 

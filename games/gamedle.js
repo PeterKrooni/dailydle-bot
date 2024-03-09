@@ -9,7 +9,9 @@ export async function gamedle(message) {
   const type = gamedleEntry.type
   const score = gamedleEntry.score
 
-  message.channel.send(`${displayName} completed ${type} ${day}: ${score}`)
+  const sent = await message.channel.send(`${displayName} completed ${type} ${day}: ${score}`)
+  message.react('✅')
+  sent.react('📋')
   await upsert(gamedleEntry)
 }
 

@@ -17,7 +17,9 @@ export async function connections(message) {
     msg = `${displayName} did Connections ${day} with ${connectionsEntry.score} mistakes`
   }
 
-  message.channel.send(msg)
+  const sent = await message.channel.send(msg)  
+  message.react('✅')
+  sent.react('📋')
   await upsert(connectionsEntry)
 }
 

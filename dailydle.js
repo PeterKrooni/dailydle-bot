@@ -302,12 +302,15 @@ export const onChannelMessage = async (message) => {
         await Gamedle.gamedle(message)
         break
     }
-
-    await loadEntriesForEmbed()
-    await updateEmbedMessageForChannel(message)
-
   } catch (error) {
     console.error(error)
+  }
+}
+
+export const onChannelMessageReact = async (reaction_orig, user) => {
+  if (!user.bot) {
+    await loadEntriesForEmbed()
+    await updateEmbedMessageForChannel(reaction_orig.message)
   }
 }
 

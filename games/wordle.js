@@ -4,10 +4,11 @@ const REGEX_WORDLE = /Wordle\s(\d+)\s([\dX]\/\d)/
 
 export async function wordle(message) {
   const wordleEntry = getWordleEntry(message)
-  
-  message.channel.send(
+  message.react('✅')
+  const sent = await message.channel.send(
     `${wordleEntry.discord_server_profile_name} scored ${wordleEntry.score} on Wordle ${wordleEntry.type_day_number}`,
   )
+  sent.react('📋')
 
   await upsert(wordleEntry)
 }
