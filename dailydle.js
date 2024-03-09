@@ -6,13 +6,19 @@ import { enabledChannelIDS } from './constants.js'
 let top_wordle = ''
 let top_mini_crossword = ''
 let top_connections = ''
-let top_gamedle = '🛠️'
+let top_normal_gamedle = ''
+let top_artwork_gamedle = ''
+let top_keyword_gamedle = ''
+let top_guess_gamedle = ''
 
 async function loadEntriesForEmbed() {
   top_wordle = ''
   top_mini_crossword = ''
   top_connections = ''
-  top_gamedle = '🛠️'
+  top_normal_gamedle = ''
+  top_artwork_gamedle = ''
+  top_keyword_gamedle = ''
+  top_guess_gamedle = ''
   const now = new Date()
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const data = await Entry.find({ createdAt: { $gte: startOfToday } })
@@ -24,6 +30,14 @@ async function loadEntriesForEmbed() {
   wordles.sort(wordleSort('score'))
   const minicrosswords = dataCopyArray.filter((a) => a.type === 'MiniCrossword')
   minicrosswords.sort(miniCrosswordsSort('score'))
+  const normalGamedles = dataCopyArray.filter((a) => a.type === 'Gamedle')
+  normalGamedles.sort(gamedleSort('score'))
+  const artworkGamedles = dataCopyArray.filter((a) => a.type === 'Gamedle (Artwork)')
+  artworkGamedles.sort(gamedleSort('score'))
+  const keywordGamedles = dataCopyArray.filter((a) => a.type === 'Gamedle (keywords)')
+  keywordGamedles.sort(gamedleSort('score'))
+  const guessGamedles = dataCopyArray.filter((a) => a.type === 'Gamedle (Guess)')
+  guessGamedles.sort(gamedleSort('score'))
 
   let iters = 0
   connections.forEach((c) => {
@@ -54,7 +68,51 @@ async function loadEntriesForEmbed() {
       top_mini_crossword += '\n' + getEntryAsEmbedLink(c)
     }
     if (iters === 5) {
-      top_connections += '\n+ ' + minicrosswords.length
+      top_mini_crossword += '\n+ ' + minicrosswords.length
+    }
+  })
+
+  iters = 0
+  normalGamedles.forEach((c) => {
+    iters++
+    if (iters <= 5) {
+      top_normal_gamedle += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_normal_gamedle += '\n+ ' + normalGamedles.length
+    }
+  })
+
+  iters = 0
+  artworkGamedles.forEach((c) => {
+    iters++
+    if (iters <= 5) {
+      top_artwork_gamedle += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_artwork_gamedle += '\n+ ' + artworkGamedles.length
+    }
+  })
+
+  iters = 0
+  keywordGamedles.forEach((c) => {
+    iters++
+    if (iters <= 5) {
+      top_keyword_gamedle += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_keyword_gamedle += '\n+ ' + keywordGamedles.length
+    }
+  })
+
+  iters = 0
+  guessGamedles.forEach((c) => {
+    iters++
+    if (iters <= 5) {
+      top_guess_gamedle += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_guess_gamedle += '\n+ ' + guessGamedles.length
     }
   })
 }
@@ -90,6 +148,11 @@ function miniCrosswordsSort(field) {
   // If we get a NaN value here something's fucked, just put it at the
   // end of the list 😊 otherwise we want ascending order, so wordleSort
   // works fine:
+  return wordleSort(field)
+}
+
+function gamedleSort(field) {
+  // todo idk
   return wordleSort(field)
 }
 
@@ -138,19 +201,29 @@ function getEmbedFields() {
       inline: true,
     },
     {
-      name: '',
-      value: '',
-      inline: false,
-    },
-    {
       name: 'Connections',
       value: top_connections,
       inline: true,
     },
     {
-      name: 'Gamedle',
-      value: top_gamedle,
-      inline: true,
+      name: 'Gamedle (normal)',
+      value: top_normal_gamedle,
+      inline: false,
+    },
+    {
+      name: 'Gamedle (artwork)',
+      value: top_artwork_gamedle,
+      inline: false,
+    },
+    {
+      name: 'Gamedle (keyword)',
+      value: top_keyword_gamedle,
+      inline: false,
+    },
+    {
+      name: 'Gamedle (guess)',
+      value: top_guess_gamedle,
+      inline: false,
     },
   ]
   return fields
@@ -182,6 +255,7 @@ function messagePassesContentFilter(message) {
 import * as Wordle from './games/wordle.js'
 import * as MiniCrossword from './games/minicrossword.js'
 import * as Connections from './games/connections.js'
+import * as Gamedle from './games/gamedle.js'
 
 function getGameType(content) {
   if (Wordle.validMessage(content)) {
@@ -194,6 +268,9 @@ function getGameType(content) {
 
   if (Connections.validMessage(content)) {
     return 'Connections'
+  }
+  if (Gamedle.validMessage(content)) {
+    return 'Gamedle'
   }
 
   return null
@@ -220,6 +297,10 @@ export const onChannelMessage = async (message) => {
         break
       case 'Connections':
         await Connections.connections(message)
+        break
+      case 'Gamedle':
+        await Gamedle.gamedle(message)
+        break
     }
 
     await loadEntriesForEmbed()
@@ -227,17 +308,6 @@ export const onChannelMessage = async (message) => {
 
   } catch (error) {
     console.error(error)
-  }
-
-  // filtering here doesnt work
-  if (
-    message.channel.id == '1211255793622454273' &&
-    message.content.startsWith('DROP ENTRIES') &&
-    message.member?.user?.id?.startsWith('179293169849')
-  ) {
-    await Entry.deleteMany({}).then((res) => {
-      message.channel.send(`\`\`\`Drop completed -${res.deletedCount} entries\`\`\``)
-    })
   }
 }
 
