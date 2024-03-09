@@ -7,7 +7,6 @@ export async function miniCrossword(message) {
   const sent = await message.channel.send(
     `${miniCrosswordEntry.discord_server_profile_name} did Mini crossword ${miniCrosswordEntry.type_day_number} in ${miniCrosswordEntry.score} seconds`,
   )
-  message.react('✅')
   sent.react('📋')
   await upsert(miniCrosswordEntry)
 }

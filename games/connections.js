@@ -18,7 +18,6 @@ export async function connections(message) {
   }
 
   const sent = await message.channel.send(msg)  
-  message.react('✅')
   sent.react('📋')
   await upsert(connectionsEntry)
 }
