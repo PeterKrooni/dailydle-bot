@@ -1,4 +1,3 @@
-import { Message } from 'discord.js'
 import mongoose from 'mongoose'
 
 const entrySchema = new mongoose.Schema(
