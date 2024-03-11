@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv'
+import winston from 'winston'
 
 const requiredEnvVars = ['DISCORD_OAUTH_CLIENT_ID', 'DISCORD_BOT_TOKEN', 'MONGODB_CONNECTION_STRING']
 
@@ -12,7 +13,7 @@ export function checkRequiredEnvVars() {
   const missingEnvVars = requiredEnvVars.filter((envVar) => !(envVar in process.env))
 
   if (missingEnvVars.length > 0) {
-    console.error("Missing required environment variables:", missingEnvVars)
+    console.error('Missing required environment variables:', missingEnvVars)
     process.exit(1)
   }
 }
@@ -34,4 +35,24 @@ export function isAllowedChannel(channelId) {
   return process.env.ALLOWED_CHANNELS.split(',')
     .map((channelId) => channelId.trim())
     .includes(channelId)
+}
+
+/**
+ * Initializes formatted logging and overwrites the `console.log` functions, to actually
+ * meaningfully differentiate between `console.info`, `console.warn`, etc.
+ *
+ * @param {String} [log_level] - The log level to use for the logger. Defaults to 'info'.
+ */
+export function initLogging(log_level) {
+  const logger = winston.createLogger({
+    level: log_level || 'info',
+    format: winston.format.combine(winston.format.cli()),
+    transports: [new winston.transports.Console()],
+  })
+
+  console.log = (...args) => logger.info.call(logger, ...args)
+  console.info = (...args) => logger.info.call(logger, ...args)
+  console.warn = (...args) => logger.warn.call(logger, ...args)
+  console.error = (...args) => logger.error.call(logger, ...args)
+  console.debug = (...args) => logger.debug.call(logger, ...args)
 }

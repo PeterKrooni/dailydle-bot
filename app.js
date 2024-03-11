@@ -1,5 +1,5 @@
 import { onChannelMessage, onChannelMessageReact } from './dailydle.js'
-import { checkRequiredEnvVars } from './config.js'
+import { checkRequiredEnvVars, initLogging } from './config.js'
 import { initDb } from './db/util.js'
 import { initClient, registerExitHandler } from './client.js'
 import { Events } from 'discord.js'
@@ -8,10 +8,10 @@ import { Events } from 'discord.js'
 // all required environment variables are set:
 checkRequiredEnvVars()
 
-// Initialize database connection:
+initLogging(process.env.LOG_LEVEL)
+
 await initDb(process.env.MONGODB_CONNECTION_STRING)
 
-// Initialize the Discord client:
 const client = await initClient(
   process.env.DISCORD_BOT_TOKEN,
   process.env.DISCORD_OAUTH_CLIENT_ID
