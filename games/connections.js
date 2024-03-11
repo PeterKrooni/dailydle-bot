@@ -1,57 +1,37 @@
-import Entry from '../db/models/entry.js'
+import Game from './game.js'
 
-const REGEX_CONNECTIONS = /Connections\s\sPuzzle\s\#(\d+)\s([\uD83D\uDFE6-\uDFEA\s]+)/
+const messageParser = (message) => {
+  const match = message.content.match(/Connections\s\sPuzzle\s\#(\d+)\s([\uD83D\uDFE6-\uDFEA\s]+)/)
 
-export async function connections(message) {
-  const connectionsEntry = getConnectionsEntry(message)
+  // Splits the 'score' (lines of emojis) into an array of
+  // unique emojis, then filters out the empty lines and
+  // counts the length of the array.
+  // If the length not `1`, the line represents a mistake.
+  return match
+    ? {
+        day: match[1],
+        score: match[2]
+          .split('\n')
+          .filter((l) => l !== '')
+          .map((l) => new Set(l).size)
+          .filter((i) => i !== 1).length,
+      }
+    : {}
+}
 
-  const displayName = connectionsEntry.discord_server_profile_name
-  const day = connectionsEntry.type_day_number
-
-  let msg = ''
-  if (connectionsEntry.score === 4) {
-    msg = `${displayName} failed Connections ${day} after 4 mistakes`
-  } else if (connectionsEntry.score === 1) {
-    msg = `${displayName} did Connections ${day} with 1 mistake`
+const replyFormatter = (entry, mistakes) => {
+  if (mistakes === 1) {
+    return `${entry.user.server_name} solved Connections ${entry.day} with no mistakes.`
+  } else if (mistakes === 4) {
+    return `${entry.user.server_name} failed Connections ${entry.day}`
   } else {
-    msg = `${displayName} did Connections ${day} with ${connectionsEntry.score} mistakes`
+    return `${entry.user.server_name} solved Connections ${entry.day} with ${mistakes} mistakes.`
   }
-
-  const sent = await message.channel.send(msg)  
-  sent.react('📋')
-  await upsert(connectionsEntry)
 }
 
-async function upsert(connectionsEntry) {
-  const now = new Date()
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  await Entry.findOneAndUpdate({
-    createdAt: { $gte: startOfToday },
-    type: 'Connections',
-    discord_author_id: connectionsEntry.discord_author_id,
-    type_day_number: connectionsEntry.type_day_number
-  }, connectionsEntry, { upsert: true })
-}
+export const Connections = new Game('Connections', messageParser, replyFormatter, undefined, undefined, {
+  inline: true,
+  order: 2,
+})
 
-
-function getConnectionsEntry(message) {
-  const [day, input] = message.content.match(REGEX_CONNECTIONS).splice(1, 3)
-
-  const score = input.split('\n').reduce((sum, line) => sum += new Set(line.trim().split('\uD83D').filter((n) => n !== '')).size == 1 ? 0 : 1, 0)
-
-  const connectionsEntry = {
-    discord_channel_id: message.channel.id,
-    discord_message_id: message.id,
-    discord_name: message.author.displayName,
-    discord_server_profile_name: message.member.displayName,
-    discord_author_id: message.member.user.id,
-    type: 'Connections',
-    type_day_number: day,
-    score: score,
-  }
-  return connectionsEntry
-}
-
-export function validMessage(message) {
-  return REGEX_CONNECTIONS.test(message)
-}
+export default Connections

@@ -1,4 +1,5 @@
-import { Client, Collection, GatewayIntentBits, Partials, REST, SlashCommandBuilder } from 'discord.js'
+import { Client, Collection, GatewayIntentBits, Partials, REST, Routes, SlashCommandBuilder } from 'discord.js'
+import Game from './games/game.js'
 
 const clientPartials = [Partials.Message, Partials.Channel]
 
@@ -30,7 +31,7 @@ async function registerApplicationCommands(client, bot_token, oath_client_id, co
   await rest
     .put(Routes.applicationCommands(oath_client_id), { body: commands.map((command) => command.data) })
     .then(() => {
-      console.info('Successfully registered application commands')
+      console.info(`Successfully registered ${commands.length} application commands`)
     })
     .catch((err) => {
       console.error('Failed to register application commands:', err)
@@ -52,10 +53,11 @@ async function registerApplicationCommands(client, bot_token, oath_client_id, co
  * @param {String} bot_token - The bot's token.
  * @param {String} oath_client_id - The client ID of the bot's OAuth application.
  * @param {[{ data: SlashCommandBuilder, execute(interaction): Promise<void> }]?} commands - An array of command objects to register with Discord.
+ * @param {Game[]} games - An array of game objects to register with the client.
  * @returns
  */
-export async function initClient(bot_token, oath_client_id, commands) {
-  console.info('initClient: initializing Discord client')
+export async function initClient(bot_token, oath_client_id, commands, games) {
+  console.info('Initializing Discord client')
 
   // Create client instance
   const client = new Client({
@@ -67,12 +69,20 @@ export async function initClient(bot_token, oath_client_id, commands) {
   if (commands && commands.length > 0) {
     await registerApplicationCommands(client, bot_token, oath_client_id, commands)
   } else {
-    console.debug('initClient: no application commands to register')
+    console.debug('No application commands to register')
   }
 
-  client.once('ready', () => console.info(`initClient: logged in as ${client.user.tag}`))
+  // Register games with client
+  if (games && games.length > 0) {
+    client.games = games
+    console.info(`Registered ${games.length} games`)
+  } else {
+    console.debug('No games to register')
+  }
+
+  client.once('ready', () => console.info(`Logged in as ${client.user.tag}`))
   await client.login(bot_token).catch((err) => {
-    console.error('initClient: failed to initialize client:', err)
+    console.error('Failed to initialize client:', err)
     process.exit(1)
   })
 

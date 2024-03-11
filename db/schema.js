@@ -16,6 +16,6 @@ const entrySchema = new mongoose.Schema(
   { timestamps: true },
 )
 
-export const Entry = mongoose.model('Entry', entrySchema)
+const Entry = mongoose.model('PoggersEntry', entrySchema)
 
 export default Entry

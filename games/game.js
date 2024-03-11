@@ -1,5 +1,6 @@
 import { Message } from 'discord.js'
-import { toEntry, upsertEntry } from '../db/util'
+import { toEntry, upsertEntry } from '../db/util.js'
+import Entry from '../db/schema.js'
 
 export class Game {
   /**
@@ -14,16 +15,24 @@ export class Game {
    * - Function used to format scores.
    * @param {(a: String, b: String) => String} [scoreSorter]
    * - Function used to sort scores.
+   * @param {Object} [embedOptions] - Options for the embed message. Defaults to `{ inline: false }`.
    */
-  constructor(name, messageParser, replyFormatter, scoreFormatter = (score) => score, scoreSorter = (a, b) => a - b) {
+  constructor(
+    name,
+    messageParser,
+    replyFormatter,
+    scoreFormatter = (score) => score,
+    scoreSorter = (a, b) => a - b,
+    embedOptions = { inline: false, order: undefined }
+  ) {
     this.name = name
     this.messageParser = messageParser
     this.replyFormatter = replyFormatter
     this.scoreFormatter = scoreFormatter
     this.scoreSorter = scoreSorter
+    this.embedOptions = embedOptions
+    
     this.topScores = []
-
-    console.debug(`Created game ${name}`)
   }
 
   /**
@@ -38,7 +47,7 @@ export class Game {
     if (day === undefined || score === undefined) {
       console.debug(`Message is invalid for game ${this.name}`)
     } else {
-      console.debug(`Message is valid for game ${this.name}`)
+      console.info(`Received valid ${this.name} message`)
 
       const entry = toEntry(message, this.name, day, score)
       this.sendReply(message, entry)
@@ -62,11 +71,13 @@ export class Game {
   }
 
   /**
-   * Updates the N top-most scores for the game for the current day.
+   * Updates the top-most scores for the game for the current day.
+   * 
+   * If `limit` is provided, only the first `n = limit` scores are saved.
    *
-   * @param {Number} [limit=5] - The number of top scores to update.
+   * @param {Number} [limit] - The number of top scores to save.
    */
-  async updateTopScores(limit = 5) {
+  async updateTopScores(limit) {
     console.debug(`Updating top scores for game ${this.name}`)
 
     const today = new Date().toISOString().split('T')[0]
@@ -94,9 +105,18 @@ export class Game {
         const score = this.scoreFormatter(entry.score)
         const msgLink = `https://discord.com/channels/${entry.user.id}/${entry.channel_id}/${entry.message_id}`
 
-        return `[${entry.user.name} | ${score}](${msgLink})`
+        return `[${entry.user.server_name} | ${score}](${msgLink})`
       })
       .join('\n')
+  }
+
+  async toEmbedField() {
+    return {
+      name: this.name,
+      value: await this.getFormattedTopScores(),
+      inline: this.embedOptions.inline,
+      order: this.embedOptions.order,
+    }
   }
 }
 

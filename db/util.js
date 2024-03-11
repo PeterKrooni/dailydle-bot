@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Entry from "./schema.js";
 
 /**
  * Initializes a MongoDB connection.
@@ -33,8 +34,8 @@ export function toEntry(message, game, day, score) {
     score,
     user: {
       id: message.member.user.id,
-      name: message.member.displayName,
-      server_name: message.author.displayName,
+      name: message.author.displayName,
+      server_name: message.member.displayName,
     },
     message_id: message.id,
     channel_id: message.channel.id,

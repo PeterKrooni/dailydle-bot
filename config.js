@@ -31,9 +31,9 @@ export function isAllowedChannel(channelId) {
   if (process.env.ALLOWED_CHANNELS === undefined) {
     return true
   }
-
+  
   return process.env.ALLOWED_CHANNELS.split(',')
-    .map((channelId) => channelId.trim())
+    .map(c => c.trim())
     .includes(channelId)
 }
 

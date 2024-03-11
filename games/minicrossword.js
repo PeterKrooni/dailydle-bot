@@ -1,45 +1,31 @@
-import Entry from '../db/models/entry.js'
+import Game from './game.js'
 
-const REGEX_MINI_CROSSWORD = /https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/
+const scoreFormatter = (score) => {
+  let year = Number(score) % 31536000
 
-export async function miniCrossword(message) {
-  const miniCrosswordEntry = getMiniCrosswordEntry(message)
-  const sent = await message.channel.send(
-    `${miniCrosswordEntry.discord_server_profile_name} did Mini crossword ${miniCrosswordEntry.type_day_number} in ${miniCrosswordEntry.score} seconds`,
-  )
-  sent.react('📋')
-  await upsert(miniCrosswordEntry)
+  const time = new Date(Number(score) * 1000)
+  const years = time.getUTCFullYear() === 1970 ? '' : `${time.getUTCFullYear() - 1970}y`
+  const months = time.getUTCMonth() === 0 ? '' : `${time.getUTCMonth()}m`
+  const days = time.getUTCDate() === 1 ? '' : `${time.getUTCDate()}d`
+  const hours = time.getUTCHours() === 0 ? '' : `${time.getUTCHours()}h`
+  const minutes = time.getUTCMinutes() === 0 ? '' : `${time.getUTCMinutes()}m`
+  const seconds = `${time.getUTCSeconds()}s`
+
+  const slowpoke = years !== '' || months !== '' || days !== ''
+
+  return `${years}${slowpoke ? ', ' : ''}${months}${days}${hours}${minutes}${seconds}`
 }
 
-async function upsert(miniCrosswordEntry) {
-  const now = new Date()
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  await Entry.findOneAndUpdate({
-    createdAt: { $gte: startOfToday },
-    type: 'MiniCrossword',
-    discord_author_id: miniCrosswordEntry.discord_author_id,
-    type_day_number: miniCrosswordEntry.type_day_number
-  }, miniCrosswordEntry, { upsert: true })
-}
+export const TheMini = new Game(
+  'Mini Crossword',
+  (message) => {
+    const match = message.content.match(/https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/)
+    return match ? { day: match[1], score: match[2] } : {}
+  },
+  (e) => `${e.user.server_name} did the Mini Crossword ${e.day} in ${scoreFormatter(e.score)}.`,
+  scoreFormatter,
+  undefined,
+  { inline: true, order: 1 },
+)
 
-
-function getMiniCrosswordEntry(message) {
-  // Matches day (e.g. '2024-03-05') and time (e.g. '59')
-  const [day, score] = message.content.match(REGEX_MINI_CROSSWORD).slice(1, 3)
-
-  const miniCrosswordEntry = {
-    discord_channel_id: message.channel.id,
-    discord_message_id: message.id,
-    discord_name: message.author.displayName,
-    discord_server_profile_name: message.member.displayName,
-    discord_author_id: message.member.user.id,
-    type: 'MiniCrossword',
-    type_day_number: day,
-    score: score,
-  }
-  return miniCrosswordEntry
-}
-
-export function validMessage(message) {
-  return REGEX_MINI_CROSSWORD.test(message)
-}
+export default TheMini
