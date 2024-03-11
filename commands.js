@@ -1,6 +1,5 @@
 import { SlashCommandBuilder } from 'discord.js'
-import { getEmbed } from './embed.js'
-import { links } from './constants.js'
+import { embedMessageComponents, getEmbed } from './embed.js'
 
 export const embedCommand = {
   data: new SlashCommandBuilder().setName('embed').setDescription('Sends an embed message.'),
@@ -9,7 +8,7 @@ export const embedCommand = {
 
     await interaction.reply({
       embeds: [await getEmbed(interaction.client.games)],
-      components: links,
+      components: embedMessageComponents,
     })
   },
 }

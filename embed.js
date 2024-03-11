@@ -32,6 +32,42 @@ const embedTemplate = {
   },
 }
 
+export const embedMessageComponents = [
+  {
+    type: 1,
+    components: [
+      {
+        style: 5,
+        label: `Wordle`,
+        url: `https://www.nytimes.com/games/wordle/index.html`,
+        disabled: false,
+        type: 2,
+      },
+      {
+        style: 5,
+        label: `Connections`,
+        url: `https://www.nytimes.com/games/connections`,
+        disabled: false,
+        type: 2,
+      },
+      {
+        style: 5,
+        label: `The Mini`,
+        url: `https://www.nytimes.com/crosswords/game/mini`,
+        disabled: false,
+        type: 2,
+      },
+      {
+        style: 5,
+        label: `Gamedle`,
+        url: `https://www.gamedle.wtf`,
+        disabled: false,
+        type: 2,
+      },
+    ],
+  },
+]
+
 /**
  * Generates an embed message from a list of games.
  *
