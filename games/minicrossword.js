@@ -1,9 +1,7 @@
 import Game from './game.js'
 
 const scoreFormatter = (score) => {
-  if (!isFinite(Number(score))) {
-    return '∞???'
-  }
+  if (!isFinite(Number(score))) return '∞???'
 
   let year = Number(score) % 31536000
 
@@ -17,7 +15,7 @@ const scoreFormatter = (score) => {
 
   const slowpoke = years !== '' || months !== '' || days !== ''
 
-  return `${years}${slowpoke ? ', ' : ''}${months}${days}${hours}${minutes}${seconds}`
+  return `${years}${months}${days}${slowpoke ? ', ' : ''}${hours}${minutes}${seconds}`
 }
 
 export const TheMini = new Game(
