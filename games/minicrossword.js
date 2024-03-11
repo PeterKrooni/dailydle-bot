@@ -2,20 +2,13 @@ import Game from './game.js'
 
 const scoreFormatter = (score) => {
   if (!isFinite(Number(score))) return '∞???'
-
-  let year = Number(score) % 31536000
-
-  const time = new Date(year * 1000)
-  const years = Number(score) / 31536000 >= 1 ? `${Math.floor(Number(score) / 31536000)}y` : ''
-  const months = time.getUTCMonth() === 0 ? '' : `${time.getUTCMonth()}m`
-  const days = time.getUTCDate() === 1 ? '' : `${time.getUTCDate()}d`
-  const hours = time.getUTCHours() === 0 ? '' : `${time.getUTCHours()}h`
-  const minutes = time.getUTCMinutes() === 0 ? '' : `${time.getUTCMinutes()}m`
-  const seconds = `${time.getUTCSeconds()}s`
-
-  const slowpoke = years !== '' || months !== '' || days !== ''
-
-  return `${years}${months}${days}${slowpoke ? ', ' : ''}${hours}${minutes}${seconds}`
+  const time = new Date((Number(score) % 31536000) * 1000)
+  const overtime = `${Number(score) / 31536000 >= 1 ? `${Math.floor(Number(score) / 31536000)}y` : ''}${
+    time.getUTCMonth() === 0 ? '' : `${time.getUTCMonth()}m`
+  }${time.getUTCDate() === 1 ? '' : `${time.getUTCDate()}d`}`
+  return `${overtime}${overtime !== '' ? ', ' : ''}${time.getUTCHours() === 0 ? '' : `${time.getUTCHours()}h`}${
+    time.getUTCMinutes() === 0 ? '' : `${time.getUTCMinutes()}m`
+  }${time.getUTCSeconds()}s`
 }
 
 export const TheMini = new Game(
