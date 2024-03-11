@@ -2,6 +2,19 @@ import { Message } from 'discord.js'
 import { toEntry, upsertEntry } from '../db/util'
 
 export class Game {
+  /**
+   * Creates a new game.
+   *
+   * @param {String} name - The name of the game.
+   * @param {(msg: Message) => { day, score }} messageParser
+   * - Function used to parse messages. If the message is invalid, `{}` should be returned.
+   * @param {(entry: Object, score: String | Number) => String} replyFormatter
+   * - Function used to format replies. Takes an entry and a score - formatted by `scoreFormatter`.
+   * @param {(score: String | Number) => String | Number} [scoreFormatter]
+   * - Function used to format scores.
+   * @param {(a: String, b: String) => String} [scoreSorter]
+   * - Function used to sort scores.
+   */
   constructor(name, messageParser, replyFormatter, scoreFormatter = (score) => score, scoreSorter = (a, b) => a - b) {
     this.name = name
     this.messageParser = messageParser
@@ -86,3 +99,5 @@ export class Game {
       .join('\n')
   }
 }
+
+export default Game
