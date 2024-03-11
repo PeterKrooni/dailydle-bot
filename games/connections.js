@@ -21,11 +21,11 @@ const messageParser = (message) => {
 
 const replyFormatter = (entry, mistakes) => {
   if (mistakes === 1) {
-    return `${entry.user.server_name} solved Connections ${entry.day} with no mistakes.`
+    return `${entry.user.server_name} solved Connections ${entry.day} with no mistakes`
   } else if (mistakes === 4) {
     return `${entry.user.server_name} failed Connections ${entry.day}`
   } else {
-    return `${entry.user.server_name} solved Connections ${entry.day} with ${mistakes} mistakes.`
+    return `${entry.user.server_name} solved Connections ${entry.day} with ${mistakes} mistakes`
   }
 }
 

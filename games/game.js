@@ -23,7 +23,7 @@ export class Game {
     replyFormatter,
     scoreFormatter = (score) => score,
     scoreSorter = (a, b) => a - b,
-    embedOptions = { inline: false, order: undefined }
+    embedOptions = { inline: false, order: undefined },
   ) {
     this.name = name
     this.messageParser = messageParser
@@ -31,7 +31,7 @@ export class Game {
     this.scoreFormatter = scoreFormatter
     this.scoreSorter = scoreSorter
     this.embedOptions = embedOptions
-    
+
     this.topScores = []
   }
 
@@ -72,7 +72,7 @@ export class Game {
 
   /**
    * Updates the top-most scores for the game for the current day.
-   * 
+   *
    * If `limit` is provided, only the first `n = limit` scores are saved.
    *
    * @param {Number} [limit] - The number of top scores to save.

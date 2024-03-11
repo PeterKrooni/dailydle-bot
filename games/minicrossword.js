@@ -17,7 +17,7 @@ const scoreFormatter = (score) => {
 
   const slowpoke = years !== '' || months !== '' || days !== ''
 
-  return `${years}${slowpoke ? ', ' : ''}${months}${days}${hours}${minutes}${seconds}.`
+  return `${years}${slowpoke ? ', ' : ''}${months}${days}${hours}${minutes}${seconds}`
 }
 
 export const TheMini = new Game(
