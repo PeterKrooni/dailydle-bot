@@ -1,14 +1,19 @@
 import * as dotenv from 'dotenv'
 
-const requiredEnvVars = ['DISCORD_OsAUTH_CLIENT_ID', 'DISCORD_BOT_TOKEN', 'MONGODB_CONNECTION_STRING']
+const requiredEnvVars = ['DISCORD_OAUTH_CLIENT_ID', 'DISCORD_BOT_TOKEN', 'MONGODB_CONNECTION_STRING']
 
+/**
+ * Load environment variables from .env file and verify that all
+ * required environment variables are set.
+ */
 export function checkRequiredEnvVars() {
   dotenv.config()
 
   const missingEnvVars = requiredEnvVars.filter((envVar) => !(envVar in process.env))
 
   if (missingEnvVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`)
+    console.error("Missing required environment variables:", missingEnvVars)
+    process.exit(1)
   }
 }
 
