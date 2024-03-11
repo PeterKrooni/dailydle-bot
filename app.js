@@ -2,11 +2,13 @@ import { config } from 'dotenv'
 import { initClient, addBotCleanupOnProcessExitHandlers } from './bot.js'
 import { connectDB } from './db/util/db.js'
 import { onChannelMessage, onChannelMessageReact } from './dailydle.js'
-import { verifyRequiredEnvVarsAreSet } from './services/envVarVerifier.js'
 import { CouldNotCreateClientError } from './errors/CouldNotCreateClientError.js'
 
-config()
-verifyRequiredEnvVarsAreSet()
+import { checkRequiredEnvVars } from './config.js'
+
+// Load environment variables from .env file and verify that
+// all required environment variables are set:
+checkRequiredEnvVars()
 
 const client = await initClient()
 

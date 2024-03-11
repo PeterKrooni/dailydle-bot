@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 export const connectDB = async () => {
   await mongoose
-    .connect(process.env.DAILYDLE_DB_URI)
+    .connect(process.env.MONGODB_CONNECTION_STRING)
     .then(() => {
       console.log(`Connected to MongoDB (db.js::connectDB)`)
     })
