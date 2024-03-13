@@ -3,7 +3,7 @@ services:
     build: .
     container_name: app
     environment:
-       DAILYDLE_DB_URI: mongodb://mongo:27017/dailydlebot
+       MONGODB_CONNECTION_STRING: mongodb://mongo:27017/dailydlebot
     ports:
       - 3000:3000
     depends_on:
