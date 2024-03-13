@@ -11,7 +11,7 @@ const scoreFormatter = (score) => {
   }${time.getUTCSeconds()}s`
 }
 
-export const TheMini = new Game(
+export const MiniCrossword = new Game(
   'Mini Crossword',
   (message) => {
     const match = message.content.match(/https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/)
@@ -23,4 +23,4 @@ export const TheMini = new Game(
   { inline: true, order: 1 },
 )
 
-export default TheMini
+export default MiniCrossword

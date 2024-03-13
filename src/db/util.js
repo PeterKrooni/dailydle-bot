@@ -9,6 +9,7 @@ import Entry from "./schema.js";
  * @param {String} connection_string - The connection string to use for the database.
  */
 export async function initDb(connection_string) {
+  console.debug("Connecting to database...");
     await mongoose.connect(connection_string)
     .then(() => {
         console.info("Connected to database.");

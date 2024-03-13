@@ -12,7 +12,7 @@ export const messageHandler = async (message) => {
   }
 
   console.debug(`Received message from ${message.member.displayName}: ${fmtmsg(message.content)}`)
-  await Promise.all(message.client.games.map(async (game) => await game.handleMessage(message)))
+  await Promise.all(message.client.games.map(async (game) => game.handleMessage(message)))
 }
 
 export const interactionHandler = async (interaction) => {

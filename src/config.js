@@ -50,7 +50,7 @@ export function initLogging(log_level) {
     transports: [new winston.transports.Console()],
   })
 
-  console.log = (...args) => logger.info.call(logger, ...args)
+  // console.log = (...args) => logger.info.call(logger, ...args)
   console.info = (...args) => logger.info.call(logger, ...args)
   console.warn = (...args) => logger.warn.call(logger, ...args)
   console.error = (...args) => logger.error.call(logger, ...args)

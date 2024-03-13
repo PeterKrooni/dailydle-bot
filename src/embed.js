@@ -75,9 +75,9 @@ export const embedMessageComponents = [
  */
 export async function getEmbed(games) {
   // Get the top scores for each game, and sort them by the embed order of each game:
-  const fields = (await Promise.all(games.map((game) => game.toEmbedField()))).sort((a, b) =>
-    b.order === undefined ? 1 : a.order - b.order,
-  )
+  const fields = (await Promise.all(games.map((game) => game.toEmbedField())))
+    .flat()
+    .sort((a, b) => (b.order === undefined ? 1 : a.order - b.order))
 
   const embed = { ...embedTemplate }
   embed.fields = embed.fields.concat(fields)

@@ -4,9 +4,10 @@ import { initClient, registerExitHandler } from './client.js'
 import { Events } from 'discord.js'
 import Wordle from './games/wordle.js'
 import Connections from './games/connections.js'
-import TheMini from './games/minicrossword.js'
+import MiniCrossword from './games/minicrossword.js'
+import Gamedle from './games/gamedle.js'
 import { interactionHandler, messageHandler } from './handlers.js'
-import { embedCommand } from './commands.js'
+import { dropEntriesCommand, embedCommand } from './commands.js'
 
 // Load environment variables from .env file and verify that
 // all required environment variables are set:
@@ -19,8 +20,8 @@ await initDb(process.env.MONGODB_CONNECTION_STRING)
 const client = await initClient(
   process.env.DISCORD_BOT_TOKEN,
   process.env.DISCORD_OAUTH_CLIENT_ID,
-  [embedCommand],
-  [Wordle, Connections, TheMini],
+  [embedCommand, dropEntriesCommand],
+  [Wordle, Connections, MiniCrossword, Gamedle],
 )
 
 // Add bot cleanup handler to the process:
