@@ -1,7 +1,7 @@
 {
    "scripts": {
-      "start": "node app.js",
-      "nodemon": "nodemon app.js"
+      "start": "node src/app.js",
+      "nodemon": "nodemon src/app.js"
    },
    "dependencies": {
       "discord.js": "^14.14.1",
