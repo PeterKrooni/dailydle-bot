@@ -24,6 +24,11 @@ const clientIntents = [
  * @param {[{ data: SlashCommandBuilder, execute(interaction): Promise<void>}]} commands - An array of command objects to register with Discord.
  */
 async function registerApplicationCommands(client, bot_token, oath_client_id, commands) {
+  if (!commands || commands.length === 0) {
+    console.debug('No application commands to register')
+    return
+  }
+
   console.info('Registering application commands')
 
   // Register application commands with Discord
@@ -41,6 +46,21 @@ async function registerApplicationCommands(client, bot_token, oath_client_id, co
   // Add commands to client for interaction handling
   client.commands = new Collection()
   commands.forEach((command) => client.commands.set(command.data.name, command))
+}
+
+/**
+ * Adds a list of games to the client object.
+ *
+ * @param {Client} client - The Discord client instance.
+ * @param {Game[]} games - An array of game objects to register with the client.
+ */
+async function registerGames(client, games) {
+  if (games && games.length > 0) {
+    client.games = games
+    console.info(`Registered ${games.length} games`)
+  } else {
+    console.debug('No games to register')
+  }
 }
 
 /**
@@ -65,20 +85,8 @@ export async function initClient(bot_token, oath_client_id, commands, games) {
     intents: clientIntents,
   })
 
-  // Register application commands, if applicable
-  if (commands && commands.length > 0) {
-    await registerApplicationCommands(client, bot_token, oath_client_id, commands)
-  } else {
-    console.debug('No application commands to register')
-  }
-
-  // Register games with client
-  if (games && games.length > 0) {
-    client.games = games
-    console.info(`Registered ${games.length} games`)
-  } else {
-    console.debug('No games to register')
-  }
+  await registerApplicationCommands(client, bot_token, oath_client_id, commands)
+  await registerGames(client, games)
 
   client.once('ready', () => console.info(`Logged in as ${client.user.tag}`))
   await client.login(bot_token).catch((err) => {

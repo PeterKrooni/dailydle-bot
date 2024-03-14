@@ -1,6 +1,6 @@
 import { isAllowedChannel } from './config.js'
 
-// Incredibly important
+// Changes the color of a message in the console so that they are easier to ignore
 const logColors = { reset: '\x1b[0m', gray: '\x1b[90m' }
 const fmtmsg = (msg) => `${logColors.gray}${msg.length > 100 ? msg.slice(0, 100) + '...' : msg}${logColors.reset}`
 
