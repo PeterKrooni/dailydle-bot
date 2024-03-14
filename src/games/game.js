@@ -50,8 +50,17 @@ export class Game {
       console.info(`Received valid ${this.name} message`)
 
       const entry = toEntry(message, this.name, day, score)
-      this.sendReply(message, entry)
+      this.#sendReply(message, entry)
       await upsertEntry(entry)
+    }
+  }
+
+  async toEmbedField() {
+    return {
+      name: this.name,
+      value: await this.#getFormattedTopScores(),
+      inline: this.embedOptions.inline,
+      order: this.embedOptions.order,
     }
   }
 
@@ -64,7 +73,7 @@ export class Game {
    * @param {Message} message - The message to send a reply to.
    * @param {Object} entry - The entry to send a reply with.
    */
-  async sendReply(message, entry) {
+  async #sendReply(message, entry) {
     const score = this.scoreFormatter(entry.score)
     const reply = this.replyFormatter(entry, score)
     await message.reply(reply)
@@ -77,7 +86,7 @@ export class Game {
    *
    * @param {Number} [limit] - The number of top scores to save.
    */
-  async updateTopScores(limit) {
+  async #updateTopScores(limit) {
     console.debug(`Updating top scores for game ${this.name}`)
 
     const today = new Date().toISOString().split('T')[0]
@@ -96,9 +105,9 @@ export class Game {
    *
    * @returns {String} A string representation of the top scores for the game.
    */
-  async getFormattedTopScores() {
+  async #getFormattedTopScores() {
     // TODO: ew?
-    await this.updateTopScores()
+    await this.#updateTopScores()
 
     return this.topScores
       .map((entry) => {
@@ -108,15 +117,6 @@ export class Game {
         return `[${entry.user.server_name} | ${score}](${msgLink})`
       })
       .join('\n')
-  }
-
-  async toEmbedField() {
-    return {
-      name: this.name,
-      value: await this.getFormattedTopScores(),
-      inline: this.embedOptions.inline,
-      order: this.embedOptions.order,
-    }
   }
 }
 
