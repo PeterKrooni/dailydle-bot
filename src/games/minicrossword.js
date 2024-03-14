@@ -1,9 +1,11 @@
 import Game from './game.js'
 
+const YEAR_IN_SECONDS = 31536000
+
 const scoreFormatter = (score) => {
   if (!isFinite(Number(score))) return '∞???'
-  const time = new Date((Number(score) % 31536000) * 1000)
-  const overtime = `${Number(score) / 31536000 >= 1 ? `${Math.floor(Number(score) / 31536000)}y` : ''}${
+  const time = new Date((Number(score) % YEAR_IN_SECONDS) * 1000)
+  const overtime = `${Number(score) / YEAR_IN_SECONDS >= 1 ? `${Math.floor(Number(score) / YEAR_IN_SECONDS)}y` : ''}${
     time.getUTCMonth() === 0 ? '' : `${time.getUTCMonth()}m`
   }${time.getUTCDate() === 1 ? '' : `${time.getUTCDate()}d`}`
   return `${overtime}${overtime !== '' ? ', ' : ''}${time.getUTCHours() === 0 ? '' : `${time.getUTCHours()}h`}${
