@@ -13,12 +13,11 @@ Written in javascript with node, with mongoDB as the database.
 
 ```.env
 # hentes på discord dev portal (under /applications)
-DISCORD_OAUTH_CLIENT_ID=
-DISCORD_OAUTH_CLIENT_SECRET=
-DISCORD_BOT_TOKEN=
+DISCORD_OAUTH_CLIENT_ID=<discord bot oath client id>
+DISCORD_BOT_TOKEN=<discord bot token>
 
 # denne her må være en MongoDB connection string
-DAILYDLE_DB_URI=very cool repo :D
+MONGODB_CONNECTION_STRING=yum
 ```
 
 ### Deployment & hosting
@@ -47,7 +46,7 @@ Use `docker compose up` to start bot and database as docker containers.
 - Node
 - Docker (optional)
 
-## Good boys
+## Bad boys
 
 Jakob Snorrason
 
