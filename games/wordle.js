@@ -1,6 +1,6 @@
 import Entry from '../db/models/entry.js'
 
-const REGEX_WORDLE = /Wordle\s(\d+)\s([\dX]\/\d)/
+const REGEX_WORDLE = /Wordle (\d*\s?\,?\d+) ([1-6X]\/6)/
 
 export async function wordle(message) {
   const wordleEntry = getWordleEntry(message)

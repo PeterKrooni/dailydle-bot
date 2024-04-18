@@ -308,7 +308,7 @@ export const onChannelMessage = async (message) => {
 }
 
 export const onChannelMessageReact = async (reaction_orig, user) => {
-  if (!user.bot) {
+  if (!user.bot && enabledChannelIDS.includes(reaction_orig.message.channel.id)) {
     await loadEntriesForEmbed()
     await updateEmbedMessageForChannel(reaction_orig.message)
   }

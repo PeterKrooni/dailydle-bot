@@ -1,4 +1,4 @@
-export const enabledChannelIDS = ['1211255793622454273']
+export const enabledChannelIDS = ['1210534521573744720']
 
 export const commands = [
   {
