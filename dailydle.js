@@ -6,6 +6,7 @@ import { enabledChannelIDS } from './constants.js'
 let top_wordle = ''
 let top_mini_crossword = ''
 let top_connections = ''
+let top_strands = ''
 let top_normal_gamedle = ''
 let top_artwork_gamedle = ''
 let top_keyword_gamedle = ''
@@ -15,6 +16,7 @@ async function loadEntriesForEmbed() {
   top_wordle = ''
   top_mini_crossword = ''
   top_connections = ''
+  top_strands = ''
   top_normal_gamedle = ''
   top_artwork_gamedle = ''
   top_keyword_gamedle = ''
@@ -30,6 +32,8 @@ async function loadEntriesForEmbed() {
   wordles.sort(wordleSort('score'))
   const minicrosswords = dataCopyArray.filter((a) => a.type === 'MiniCrossword')
   minicrosswords.sort(miniCrosswordsSort('score'))
+  const strands = dataCopyArray.filter((a) => a.type === 'Strands')
+  strands.sort(strandsSort('score'))
   const normalGamedles = dataCopyArray.filter((a) => a.type === 'Gamedle')
   normalGamedles.sort(gamedleSort('score'))
   const artworkGamedles = dataCopyArray.filter((a) => a.type === 'Gamedle (Artwork)')
@@ -69,6 +73,17 @@ async function loadEntriesForEmbed() {
     }
     if (iters === 5) {
       top_mini_crossword += '\n+ ' + minicrosswords.length
+    }
+  })
+
+  iters = 0
+  strands.forEach((c) => {
+    iters++
+    if (iters <= 5) {
+      top_strands += '\n' + getEntryAsEmbedLink(c)
+    }
+    if (iters === 5) {
+      top_strands += '\n+ ' + strands.length
     }
   })
 
@@ -138,16 +153,22 @@ function wordleSort(field) {
     return isNaN(x) ? 1 : isNaN(y) ? -1 : x - y
   }
 }
+
 function connectionsSort(field) {
   // If we get a NaN value here something's fucked, just put it at the
   // end of the list 😊 otherwise we want ascending order, so wordleSort
   // works fine:
   return wordleSort(field)
 }
+
 function miniCrosswordsSort(field) {
   // If we get a NaN value here something's fucked, just put it at the
   // end of the list 😊 otherwise we want ascending order, so wordleSort
   // works fine:
+  return wordleSort(field)
+}
+
+function strandsSort(field) {
   return wordleSort(field)
 }
 
@@ -206,6 +227,11 @@ function getEmbedFields() {
       inline: true,
     },
     {
+      name: 'Strands',
+      value: top_strands,
+      inline: true,
+    },
+    {
       name: 'Gamedle (normal)',
       value: top_normal_gamedle,
       inline: false,
@@ -255,6 +281,7 @@ function messagePassesContentFilter(message) {
 import * as Wordle from './games/new_york_times/wordle.js'
 import * as MiniCrossword from './games/new_york_times/minicrossword.js'
 import * as Connections from './games/new_york_times/connections.js'
+import * as Strands from './games/new_york_times/strands.js'
 import * as Gamedle from './games/gamedle.js'
 
 function getGameType(content) {
@@ -269,6 +296,11 @@ function getGameType(content) {
   if (Connections.validMessage(content)) {
     return 'Connections'
   }
+
+  if (Strands.validMessage(content)) {
+    return 'Strands'
+  }
+
   if (Gamedle.validMessage(content)) {
     return 'Gamedle'
   }
@@ -297,6 +329,9 @@ export const onChannelMessage = async (message) => {
         break
       case 'Connections':
         await Connections.connections(message)
+        break
+      case 'Strands':
+        await Strands.strands(message)
         break
       case 'Gamedle':
         await Gamedle.gamedle(message)
