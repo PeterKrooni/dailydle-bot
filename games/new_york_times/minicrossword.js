@@ -1,4 +1,4 @@
-import Entry from '../db/models/entry.js'
+import Entry from '../../db/models/entry.js'
 
 const REGEX_MINI_CROSSWORD = /https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/
 

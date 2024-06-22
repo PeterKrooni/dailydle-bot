@@ -1,4 +1,4 @@
-export const enabledChannelIDS = ['1210534521573744720']
+export const enabledChannelIDS = ['1210534521573744720'] 
 
 export const commands = [
   {
@@ -41,6 +41,13 @@ export const links = [
         style: 5,
         label: `The Mini`,
         url: `https://www.nytimes.com/crosswords/game/mini`,
+        disabled: false,
+        type: 2,
+      },
+      {
+        style: 5,
+        label: `Strands`,
+        url: `https://www.nytimes.com/games/strands`,
         disabled: false,
         type: 2,
       },

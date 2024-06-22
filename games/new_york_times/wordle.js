@@ -1,4 +1,4 @@
-import Entry from '../db/models/entry.js'
+import Entry from '../../db/models/entry.js'
 
 const REGEX_WORDLE = /Wordle (\d*\s?\,?\d+) ([1-6X]\/6)/
 
