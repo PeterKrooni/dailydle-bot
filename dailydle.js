@@ -252,9 +252,9 @@ function messagePassesContentFilter(message) {
   return [true, '', gameType]
 }
 
-import * as Wordle from './games/wordle.js'
-import * as MiniCrossword from './games/minicrossword.js'
-import * as Connections from './games/connections.js'
+import * as Wordle from './games/new_york_times/wordle.js'
+import * as MiniCrossword from './games/new_york_times/minicrossword.js'
+import * as Connections from './games/new_york_times/connections.js'
 import * as Gamedle from './games/gamedle.js'
 
 function getGameType(content) {

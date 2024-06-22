@@ -1,4 +1,4 @@
-import Entry from '../db/models/entry.js'
+import Entry from '../../db/models/entry.js'
 
 const REGEX_CONNECTIONS = /Connections\s\sPuzzle\s\#(\d+)\s([\uD83D\uDFE6-\uDFEA\s]+)/
 
