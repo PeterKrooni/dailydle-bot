@@ -4,7 +4,7 @@ const GAME_NAME = 'Strands'
 const GAME_NR = /[#][0-9]+/g
 const RESULT = /[💡🔵🟡]+/
 
-const REGEX_STRANDS = /Strands\s[#][0-9]+\s[“][A-Za-z0-9\s]+[”][\uD83D\uDCA1\uD83D\uDD35\uD83D\uDFE1\s]+/gm
+const REGEX_STRANDS = /Strands\s[#][0-9]+\s[“][A-Za-z0-9'!?\s]+[”][\uD83D\uDCA1\uD83D\uDD35\uD83D\uDFE1\s]+/gm
 
 export async function strands(message) {
     const entry = getEntry(message)
