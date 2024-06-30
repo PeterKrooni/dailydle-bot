@@ -10,5 +10,6 @@ export async function dumpEntriesToFile() {
         month: 'long',
       })}.json`
     await fs.writeFileSync(filename, JSON.stringify(data))
+    return data.length
 }
 

@@ -318,6 +318,12 @@ export const onChannelMessage = async (message) => {
   if (message.content.startsWith('/backup')
     && message.author.id === process.env.ADMIN_DISCORD_USER_ID) {
     await dumpEntriesToFile()
+    .then((res) => {
+      message.reply(`Backed up ${res} entries.`)
+    }).catch((err) => {
+      console.error(`Backup failed due to error: ${err}`)
+      message.reply('Backup failed. Consult the server logs for more information.')
+    })
   }
 
   if (!validMessage) {
