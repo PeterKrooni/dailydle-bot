@@ -17,6 +17,9 @@ DISCORD_OAUTH_CLIENT_ID=
 DISCORD_OAUTH_CLIENT_SECRET=
 DISCORD_BOT_TOKEN=
 
+# optional: enables bot admin features directly in discord channel
+ADMIN_DISCORD_USER_ID=
+
 # denne her må være en MongoDB connection string
 DAILYDLE_DB_URI=very cool repo :D
 ```

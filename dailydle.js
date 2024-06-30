@@ -310,10 +310,16 @@ function getGameType(content) {
 
 // todo delete ealier entries from this bot
 
+import { dumpEntriesToFile } from './debug/dump.js'
 
 export const onChannelMessage = async (message) => {
   const [validMessage, errMsg, gameType] = messagePassesContentFilter(message)
-  
+
+  if (message.content.startsWith('/backup')
+    && message.author.id === process.env.ADMIN_DISCORD_USER_ID) {
+    await dumpEntriesToFile()
+  }
+
   if (!validMessage) {
     console.log("Recived a non-game message, ignoring..") //TODO add a logging lib? e.g Pino 
     return
