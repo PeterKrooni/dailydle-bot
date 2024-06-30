@@ -41,7 +41,7 @@ export const links = [
       },
       {
         style: 5,
-        label: `The Mini`,
+        label: `Mini crossword`,
         url: `https://www.nytimes.com/crosswords/game/mini`,
         disabled: false,
         type: 2,

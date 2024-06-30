@@ -12,7 +12,12 @@ let top_artwork_gamedle = ''
 let top_keyword_gamedle = ''
 let top_guess_gamedle = ''
 
+let authorScores = []
+let authorName = ''
+
 async function loadEntriesForEmbed() {
+  authorScores = []
+  authorName = ''
   top_wordle = ''
   top_mini_crossword = ''
   top_connections = ''
@@ -208,8 +213,12 @@ function getEmbeddList() {
 function getEmbedFields() {
   const fields = [
     {
+      name: 'Your stats: ' + authorName,
+      value: authorScores.reduce((acc, curr) => `${acc}, ${curr.game} (${curr.score})`, '')?.substring(2)
+    },
+    {
       name: 'Daily high scores',
-      value: 'Share your dailydle scores in the channel to register your entry',
+      value: 'Share your dailydle scores in the channel to register your entry.'
     },
     {
       name: 'Wordle',
@@ -357,14 +366,37 @@ export const onChannelMessage = async (message) => {
 export const onChannelMessageReact = async (reaction_orig, user) => {
   if (!user.bot && enabledChannelID === reaction_orig.message.channel.id) {
     await loadEntriesForEmbed()
-    await updateEmbedMessageForChannel(reaction_orig.message)
+    await updateEmbedMessageForChannel(reaction_orig.message, user)
   }
 }
 
-async function updateEmbedMessageForChannel(message) {
+async function updateEmbedMessageForChannel(message, user) {
   // TODO 2fa
   //message.channel.bulkDelete(5)
   //.then(messages => console.log(`Bulk deleted ${messages.size} messages`))
   //.catch(console.error);
-  message.channel.send({ embeds: [getEmbeddList()], components: links })
+  const componentData = await getFilteredLinks(message, user)
+  message.channel.send({ embeds: [getEmbeddList()], components: componentData })
+}
+
+async function getFilteredLinks(message, user) {
+  // 1. get enmtries from user today
+  // 2.  filter completed games from links list
+  const authorsEntries = await getAuthorsEntires(message, user)
+  authorScores = authorsEntries
+  authorName = user.username ?? user.globalName
+  const completedEntries = authorsEntries.map(e => e.game)
+  const modifiedLinks = JSON.parse(JSON.stringify(links))
+  const mlg = Object.values(modifiedLinks)[0].components.filter(c => !completedEntries.includes(c.label))
+  modifiedLinks[0].components = mlg
+  return modifiedLinks
+}
+
+async function getAuthorsEntires(message, user) {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const data = await Entry.find({ createdAt: { $gte: startOfToday }, discord_author_id: user.id })
+  if (data && data.length > 0) {
+    return data.map(d => { return { game: d.type, score: d.score }})
+  }
 }
