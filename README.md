@@ -16,6 +16,7 @@ Written in javascript with node, with mongoDB as the database.
 DISCORD_OAUTH_CLIENT_ID=
 DISCORD_OAUTH_CLIENT_SECRET=
 DISCORD_BOT_TOKEN=
+DISCORD_ENABLED_CHANNEL_ID=
 
 # optional: enables bot admin features directly in discord channel
 ADMIN_DISCORD_USER_ID=

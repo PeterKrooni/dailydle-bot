@@ -1,7 +1,7 @@
 import Entry from './db/models/entry.js'
 
 import { links } from './constants.js'
-import { enabledChannelIDS } from './constants.js'
+import { enabledChannelID } from './constants.js'
 
 let top_wordle = ''
 let top_mini_crossword = ''
@@ -258,8 +258,8 @@ function getEmbedFields() {
 function messagePassesContentFilter(message) {
   const content = message.content
 
-  if (!enabledChannelIDS.includes(message.channel.id)) {
-    return [false, 'Channel ID is not in whitelist']
+  if (enabledChannelID !== message.channel.id) {
+    return [false, `Channel ID is not in whitelist. Expected ${enabledChannelID} but recieved ${message.channel.id}`]
   }
 
   if (message.author.bot) {
@@ -321,7 +321,7 @@ export const onChannelMessage = async (message) => {
   }
 
   if (!validMessage) {
-    console.log("Recived a non-game message, ignoring..") //TODO add a logging lib? e.g Pino 
+    console.log(`Recived a non-game message, ignoring... (reason: ${errMsg})`) //TODO add a logging lib? e.g Pino 
     return
   }
   
@@ -349,7 +349,7 @@ export const onChannelMessage = async (message) => {
 }
 
 export const onChannelMessageReact = async (reaction_orig, user) => {
-  if (!user.bot && enabledChannelIDS.includes(reaction_orig.message.channel.id)) {
+  if (!user.bot && enabledChannelID === reaction_orig.message.channel.id) {
     await loadEntriesForEmbed()
     await updateEmbedMessageForChannel(reaction_orig.message)
   }

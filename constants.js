@@ -1,4 +1,6 @@
-export const enabledChannelIDS = ['1210534521573744720'] 
+import { config } from "dotenv"
+config()
+export const enabledChannelID = process.env.DISCORD_ENABLED_CHANNEL_ID
 
 export const commands = [
   {
