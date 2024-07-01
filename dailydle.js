@@ -201,7 +201,7 @@ function getEmbeddList() {
         year: 'numeric',
         month: 'long',
       }),
-    fields: getEmbedFields(),
+    fields: getEmbedFields().filter(v => v.value !== ''),
     timestamp: new Date().toISOString(),
     footer: {
       text: 'Version 1.1.1',
@@ -385,7 +385,7 @@ async function getFilteredLinks(message, user) {
   const authorsEntries = await getAuthorsEntires(message, user)
   authorScores = authorsEntries
   authorName = user.username ?? user.globalName
-  const completedEntries = authorsEntries.map(e => e.game)
+  const completedEntries = authorsEntries.map(e => e.game === 'MiniCrossword' ? 'Mini crossword' : e.game)
   const modifiedLinks = JSON.parse(JSON.stringify(links))
   const mlg = Object.values(modifiedLinks)[0].components.filter(c => !completedEntries.includes(c.label))
   modifiedLinks[0].components = mlg
