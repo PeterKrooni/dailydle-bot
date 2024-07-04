@@ -214,7 +214,7 @@ function getEmbedFields() {
   const fields = [
     {
       name: 'Your stats: ' + authorName,
-      value: authorScores.reduce((acc, curr) => `${acc}, ${curr.game} (${curr.score})`, '')?.substring(2)
+      value: authorScores?.reduce((acc, curr) => `${acc}, ${curr.game} (${curr.score})`, '')?.substring(2) ?? 'Nothing here so far...'
     },
     {
       name: 'Daily high scores',
@@ -385,9 +385,9 @@ async function getFilteredLinks(message, user) {
   const authorsEntries = await getAuthorsEntires(message, user)
   authorScores = authorsEntries
   authorName = user.username ?? user.globalName
-  const completedEntries = authorsEntries.map(e => e.game === 'MiniCrossword' ? 'Mini crossword' : e.game)
+  const completedEntries = authorsEntries?.map(e => e.game === 'MiniCrossword' ? 'Mini crossword' : e.game)
   const modifiedLinks = JSON.parse(JSON.stringify(links))
-  const mlg = Object.values(modifiedLinks)[0].components.filter(c => !completedEntries.includes(c.label))
+  const mlg = Object.values(modifiedLinks)[0].components.filter(c => completedEntries === undefined || completedEntries.length === 0 || !completedEntries.includes(c.label))
   modifiedLinks[0].components = mlg
   return modifiedLinks
 }
