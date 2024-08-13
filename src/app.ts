@@ -43,4 +43,4 @@ const client = await init_client(
   response_message
 );
 
-console.info("Bot started!");
+console.info('Bot started!');

@@ -43,8 +43,8 @@ export class GameBuilder {
 
   /**
    * Sets the message parser used for handling incoming Discord messages.
-   * 
-   * If the message parser is set, `set_matcher`, `set_day_id_parser` and 
+   *
+   * If the message parser is set, `set_matcher`, `set_day_id_parser` and
    * `set_score_parser` can be ignored.
    */
   set_message_parser(message_parser: MessageParser): GameBuilder {
@@ -54,11 +54,11 @@ export class GameBuilder {
 
   /**
    * Sets the regex and order of matches for a game. Used to build a `MessageParser`.
-   * 
+   *
    * @param {RegExp} regex - The regex used to match a Discord message's content.
    * @param {MatchType[]} match_order - The order in which matches of specific types appear.
-   * 
-   * @example 
+   *
+   * @example
    * // For the string "ab", "a" will be matched as the Day, and "b" as the Score.
    * builder.set_matcher(/^(a)(b)$/, [MatchType.Day, MatchType.Score]);
    */
@@ -71,7 +71,7 @@ export class GameBuilder {
   /**
    * Sets the Day ID parser, used for preformatting a Day extracted from a Discord message.
    * Used to build a `MessageParser`.
-   * 
+   *
    */
   set_day_id_parser(day_id_parser: MatchParser): GameBuilder {
     this.day_id_parser = day_id_parser;
@@ -131,7 +131,7 @@ export class GameBuilder {
 
   /**
    * Builds a game.
-   * 
+   *
    * @returns {Game}
    * @throws If the Game's name is undefined.
    * @throws If the Game's regex or match order are undefined.

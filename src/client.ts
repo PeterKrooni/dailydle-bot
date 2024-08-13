@@ -45,7 +45,7 @@ async function register_application_commands(
   await rest
     .put(Routes.applicationCommands(oath2_client_id), {})
     .then(() => {
-      console.info("Registered Application Commands successfully.");
+      console.info('Registered Application Commands successfully.');
       // TODO: Log
     })
     .catch((err) => {
@@ -136,7 +136,12 @@ export async function init_client(
 
   // await register_application_commands(bot_token, oath2_client_id, commands);
 
-  console.info(`Registering callbacks for:${response_message_struture.get_games().map(g => g.name).join(', ')}.`);
+  console.info(
+    `Registering callbacks for:${response_message_struture
+      .get_games()
+      .map((g) => g.name)
+      .join(', ')}.`
+  );
   register_callbacks(client, response_message_struture);
 
   return client;

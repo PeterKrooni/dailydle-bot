@@ -7,7 +7,7 @@ services:
       - '27017:27017'
     volumes:
       - mongodata:/data/db
-  
+
   app:
     build: .
     container_name: 'app'
@@ -17,7 +17,7 @@ services:
       - '3000:3000'
     depends_on:
       - 'mongodb'
-  
+
 volumes:
   mongodata:
     driver: local
