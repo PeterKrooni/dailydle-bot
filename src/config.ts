@@ -1,7 +1,7 @@
 import { config } from 'dotenv';
 
 export const REQUIRED_ENV_VARS: string[] = [
-  'DICSORD_BOT_TOKEN',
+  'DISCORD_BOT_TOKEN',
   'DISCORD_OAUTH2_CLIENT_ID',
   'DISCORD_ENABLED_CHANNEL_IDS',
   'DATABASE_URI',
