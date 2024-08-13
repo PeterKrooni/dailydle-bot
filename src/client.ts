@@ -86,7 +86,9 @@ function register_callbacks(
   const games = game_summary_message.get_games();
 
   client.on('messageCreate', async (message) => {
+    console.debug('Message received.');
     if (message_is_valid(message)) {
+      console.debug('Message is valid');
       let passed = [];
       for (const game of games) {
         if ((await game.match(message)) !== null) {
@@ -109,6 +111,21 @@ function register_callbacks(
     ) {
       await game_summary_message.send(message_reaction);
     }
+  });
+}
+
+function register_process_exit_callback(client: Client) {
+  process.on('SIGINT', async () => {
+    console.info('Shutdown requested, destroying client.');
+    client
+      .destroy()
+      .then(() => {
+        console.info('Client destroyed. Exiting.');
+        process.exit();
+      })
+      .catch((err) => {
+        console.error(`Something went wrong while destroying client: ${err}`);
+      });
   });
 }
 
@@ -136,13 +153,19 @@ export async function init_client(
 
   // await register_application_commands(bot_token, oath2_client_id, commands);
 
+  client.on('ready', () => console.info(`Logged in as ${client.user?.tag}.`));
+
+  console.info('Logging in with bot.');
+  await client.login(bot_token);
+
   console.info(
-    `Registering callbacks for:${response_message_struture
+    `Registering callbacks for: ${response_message_struture
       .get_games()
       .map((g) => g.name)
       .join(', ')}.`
   );
   register_callbacks(client, response_message_struture);
+  register_process_exit_callback(client);
 
   return client;
 }
