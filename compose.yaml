@@ -1,0 +1,23 @@
+services:
+  mongodb:
+    image: 'mongo:latest'
+    container_name: 'mongodb'
+    restart: 'always'
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodata:/data/db
+  
+  app:
+    build: .
+    container_name: 'app'
+    environment:
+      DATABASE__URI: 'mongodb://mongo:27017/dailydle'
+    ports:
+      - '3000:3000'
+    depends_on:
+      - 'mongodb'
+  
+volumes:
+  mongodata:
+    driver: local
