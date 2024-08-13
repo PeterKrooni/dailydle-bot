@@ -12,7 +12,7 @@ services:
     build: .
     container_name: 'app'
     environment:
-      DATABASE__URI: 'mongodb://mongo:27017/dailydle'
+      DATABASE_URI: 'mongodb://mongodb:27017/dailydle'
     ports:
       - '3000:3000'
     depends_on:

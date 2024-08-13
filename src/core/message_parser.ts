@@ -8,6 +8,9 @@ export enum MatchType {
   Score,
 }
 
+/**
+ * Mapping function used to preformat matches from a Discord message.
+ */
 export interface MatchParser {
   (match: string): string;
 }

@@ -39,16 +39,18 @@ async function register_application_commands(
   oath2_client_id: string,
   commands: string[]
 ) {
-  console.info('Registering application commands');
+  console.info('Registering Application Commands.');
 
   const rest = new REST({ version: '10' }).setToken(bot_token);
   await rest
     .put(Routes.applicationCommands(oath2_client_id), {})
     .then(() => {
+      console.info("Registered Application Commands successfully.");
       // TODO: Log
     })
     .catch((err) => {
       // TODO: Log err
+      console.error(`Could not register Application Commands: ${err}`);
       process.exit(1);
     });
 }
@@ -116,26 +118,26 @@ function register_callbacks(
  * @param {string} bot_token - Token used for communicating with the Discord Bot API.
  * @param {string} oath2_client_id - Token used for communicating with the Discord REST API.
  * @param {string[]} commands - Application commands to register.
- * @param {GameSummaryMessage} reponse_message_struture - A structure for game summary messages.
+ * @param {GameSummaryMessage} response_message_struture - A structure for game summary messages.
  * @returns {Promise<Client>} A Discord client.
  */
 export async function init_client(
   bot_token: string,
   oath2_client_id: string,
   commands: string[],
-  reponse_message_struture: GameSummaryMessage
+  response_message_struture: GameSummaryMessage
 ): Promise<Client> {
-  console.info('Initializing Discord Client');
+  console.info('Initializing Discord Client.');
 
   const client = new Client({
     partials: CLIENT_PARTIALS,
     intents: CLIENT_INTENTS,
   });
 
-  await register_application_commands(bot_token, oath2_client_id, commands);
+  // await register_application_commands(bot_token, oath2_client_id, commands);
 
-  console.info('Registering callbacks');
-  register_callbacks(client, reponse_message_struture);
+  console.info(`Registering callbacks for:${response_message_struture.get_games().map(g => g.name).join(', ')}.`);
+  register_callbacks(client, response_message_struture);
 
   return client;
 }

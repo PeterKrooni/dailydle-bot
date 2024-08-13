@@ -53,8 +53,8 @@ export class EmbedFieldFormatter {
    * @param {string} name - The name of the game, used as the title of the embed field.
    * @param {ScoreSorter} score_sorter - Score sorting function for displaying top entries.
    * @param {ScoreFormatter} score_formatter - Score formatting function for displaying game entries.
-   * @param {number} max_entries - The maximum entries to show in the field, the remainder being
-   * displayed as `+N`.
+   * @param {number} [max_entries=5] - Optional. The maximum entries to show in the field, the
+   * remainder being displayed as `+N`.
    */
   constructor(
     name: string,
