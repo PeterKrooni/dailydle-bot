@@ -4,24 +4,31 @@ export const REQUIRED_ENV_VARS: string[] = [
   'DICSORD_BOT_TOKEN',
   'DISCORD_OAUTH2_CLIENT_ID',
   'DISCORD_ENABLED_CHANNEL_IDS',
+  'DATABASE_URI',
 ];
 
 export const OPTIONAL_ENV_VARS: string[] = ['DISCORD_ADMIN_USER_ID'];
 
 const Config = {
-  get discord_bot_token() {
+  get DISCORD_BOT_TOKEN() {
     return process.env.DISCORD_BOT_TOKEN!;
   },
-  get discord_oauth2_client_id() {
+  get DISCORD_OATH2_CLIENT_ID() {
     return process.env.DISCORD_OAUTH2_CLIENT_ID!;
   },
-  get enabled_channel_ids() {
+  get DATABASE_URI() {
+    return process.env.DATABASE_URI!;
+  },
+  get ENABLED_CHANNEL_IDS() {
     return process.env.DISCORD_ENABLED_CHANNEL_IDS!.split(',');
   },
-  get discord_admin_user_id() {
+  get DISCORD_ADMIN_USER_ID() {
     return process.env.DISCORD_ADMIN_USER_ID;
   },
 
+  /**
+   * Loads environment variables and checks if required variables are present.
+   */
   load_config: () => {
     // Load config from dotenv
     config();

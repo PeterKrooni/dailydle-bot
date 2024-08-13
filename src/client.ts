@@ -62,7 +62,7 @@ async function register_application_commands(
  * - that the message is less than 500 characters.
  */
 function message_is_valid(message: Message): boolean {
-  const enabled_channel_ids = Config.enabled_channel_ids;
+  const enabled_channel_ids = Config.ENABLED_CHANNEL_IDS;
 
   return (
     message.channel.id in enabled_channel_ids &&

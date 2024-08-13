@@ -34,8 +34,8 @@ const response_message = new GameSummaryMessage({
 });
 
 const client = await init_client(
-  Config.discord_bot_token,
-  Config.discord_oauth2_client_id,
+  Config.DISCORD_BOT_TOKEN,
+  Config.DISCORD_OATH2_CLIENT_ID,
   [],
   response_message
 );
