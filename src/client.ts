@@ -75,9 +75,14 @@ function message_is_valid(message: Message): boolean {
  * Registers Discord callbacks for posted messages and message reactions.
  *
  * @param {Client} client - The Discord client.
- * @param {Game[]} games - Games to match the message with.
+ * @param {GameSummaryMessage} game_summary_message - Game summary message to register.
  */
-function register_callbacks(client: Client, games: Game[]) {
+function register_callbacks(
+  client: Client,
+  game_summary_message: GameSummaryMessage
+) {
+  const games = game_summary_message.get_games();
+
   client.on('messageCreate', async (message) => {
     if (message_is_valid(message)) {
       let passed = [];
@@ -88,14 +93,21 @@ function register_callbacks(client: Client, games: Game[]) {
       }
 
       if (passed.length > 0) {
-        console.log(
+        console.info(
           `Found valid game message for games ${passed.map((n) => `'${n}'`).join(', ')}.`
         );
       }
     }
   });
 
-  client.on('messageReactionAdd', async (message_reaction, user) => {});
+  client.on('messageReactionAdd', async (message_reaction, user) => {
+    if (
+      message_reaction.message.channel.id in Config.ENABLED_CHANNEL_IDS &&
+      !user.bot
+    ) {
+      await game_summary_message.send(message_reaction);
+    }
+  });
 }
 
 /**
@@ -123,7 +135,7 @@ export async function init_client(
   await register_application_commands(bot_token, oath2_client_id, commands);
 
   console.info('Registering callbacks');
-  register_callbacks(client, reponse_message_struture.get_games());
+  register_callbacks(client, reponse_message_struture);
 
   return client;
 }

@@ -1,4 +1,12 @@
-import { APIEmbed, APIEmbedField, EmbedBuilder, Message } from 'discord.js';
+import {
+  APIEmbed,
+  APIEmbedField,
+  EmbedBuilder,
+  Message,
+  MessageReaction,
+  PartialMessage,
+  PartialMessageReaction,
+} from 'discord.js';
 import Game from './game.js';
 
 /**
@@ -43,11 +51,12 @@ export class GameSummaryMessage {
   }
 
   /**
-   * Sends the game summary message to the given message's channel.
+   * Sends the game summary message to the given message reaction's channel.
    *
-   * @param {Message} message - Message in the channel to send to.
+   * @param {MessageReaction | PartialMessageReaction} message_reaction - Message reaction in the channel to send to.
    */
-  async send(message: Message) {
+  async send(message_reaction: MessageReaction | PartialMessageReaction) {
+    const message = message_reaction.message;
     const payload = {
       content:
         typeof this.structure.content === 'string'
@@ -56,11 +65,11 @@ export class GameSummaryMessage {
       embeds: await this.get_embeds(),
     };
 
-    await message.channel
-      .send(payload)
+    await message
+      .channel!.send(payload)
       .then(() =>
         console.log(
-          `Sent reaction message to ${message.member?.displayName ?? message.author.displayName}.`
+          `Sent reaction message to ${message.member?.displayName ?? message.author!.displayName}.`
         )
       )
       .catch((err) => console.warn(`Could not send reaction message: ${err}`));

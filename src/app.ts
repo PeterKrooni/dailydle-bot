@@ -1,5 +1,6 @@
 import { init_client } from './client.js';
 import Config from './config.js';
+import { init_database } from './core/database/util.js';
 import { GameSummaryMessage } from './core/embed_structure.js';
 import * as Gamedle from './games/gamedle.js';
 import * as NYT from './games/new_york_times.js';
@@ -32,6 +33,8 @@ const response_message = new GameSummaryMessage({
     },
   ],
 });
+
+await init_database();
 
 const client = await init_client(
   Config.DISCORD_BOT_TOKEN,
