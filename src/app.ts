@@ -1,9 +1,13 @@
+import { PermissionFlagsBits } from 'discord.js';
 import { init_client } from './client.js';
 import Config from './config.js';
+import CommandBuilder from './core/builders/command_builder.js';
 import { init_database } from './core/database/util.js';
 import { GameSummaryMessage } from './core/embed_structure.js';
 import * as Gamedle from './games/gamedle.js';
 import * as NYT from './games/new_york_times.js';
+import { GameEntryModel } from './core/database/schema.js';
+import fs from 'node:fs';
 
 Config.load_config();
 
@@ -38,11 +42,25 @@ const response_message = new GameSummaryMessage({
   ],
 });
 
+const commands = [
+  new CommandBuilder('backup')
+    .set_description('Save a backup of the database.')
+    .set_permissions(PermissionFlagsBits.Administrator)
+    .set_handler(async (interaction) => {
+      const data = await GameEntryModel.find({}).exec();
+      const filepath = `./dump-${new Date().toISOString().slice(0,10)}.json`;
+
+      fs.writeFileSync(filepath, JSON.stringify(data), { flag: 'ax' });
+      await interaction.reply(`Backed up ${data.length} entries.`);
+    })
+    .build(),
+];
+
 await init_database();
 
 await init_client(
   Config.DISCORD_BOT_TOKEN,
-  Config.DISCORD_OATH2_CLIENT_ID,
-  [],
-  response_message
+  response_message,
+  Config.DISCORD_APPLICATION_ID,
+  commands
 );

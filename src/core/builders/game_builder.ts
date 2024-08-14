@@ -186,3 +186,5 @@ export class GameBuilder {
     );
   }
 }
+
+export default GameBuilder;

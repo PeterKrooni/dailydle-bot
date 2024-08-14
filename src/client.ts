@@ -9,6 +9,7 @@ import {
 } from 'discord.js';
 import { GameSummaryMessage } from './core/embed_structure.js';
 import Config from './config.js';
+import { SlashCommand } from './core/command.js';
 
 /**
  * Partial client permissions needed for this bot.
@@ -30,20 +31,22 @@ const CLIENT_INTENTS: GatewayIntentBits[] = [
 /**
  * Registers application commands with Discord's API.
  *
+ * @param {string} application_id - Bot application ID.
  * @param {string} bot_token - Token used for Discord's bot API.
- * @param {string} oath2_client_id - Token used for Discord's REST API.
  * @param {string[]} commands - Commands to register.
  */
 async function register_application_commands(
+  application_id: string,
   bot_token: string,
-  oath2_client_id: string,
-  commands: string[]
+  commands: SlashCommand[]
 ) {
   console.info('Registering Application Commands.');
 
   const rest = new REST({ version: '10' }).setToken(bot_token);
   await rest
-    .put(Routes.applicationCommands(oath2_client_id), {})
+    .put(Routes.applicationCommands(application_id), {
+      body: commands.map((c) => c.definition),
+    })
     .then(() => {
       console.info('Registered Application Commands successfully.');
       // TODO: Log
@@ -79,7 +82,8 @@ function message_is_valid(message: Message): boolean {
  */
 function register_callbacks(
   client: Client,
-  game_summary_message: GameSummaryMessage
+  game_summary_message: GameSummaryMessage,
+  commands?: SlashCommand[]
 ) {
   const games = game_summary_message.get_games();
 
@@ -98,7 +102,6 @@ function register_callbacks(
         .catch((err) => console.warn(`Message callback failed: ${err}.`));
     }
   });
-
   console.info(
     `Registered callbacks for: ${game_summary_message
       .get_games()
@@ -124,8 +127,35 @@ function register_callbacks(
       });
     }
   });
-
   console.info(`Registered message reaction callback.`);
+
+  if (commands !== undefined) {
+    client.on(Events.InteractionCreate, async (interaction) => {
+      if (!interaction.isChatInputCommand()) return;
+
+      await Promise.all(
+        commands.map((command) =>
+          command.definition.name === interaction.commandName
+            ? command.handler(interaction)
+            : undefined
+        )
+      )
+        .then(() => console.info('Handled interaction commands.'))
+        .catch((err) => {
+          interaction
+            .reply('Something went wrong 😿')
+            .catch((err) =>
+              console.error(
+                `Something went wrong while sending 'Something went wrong' reply to interaction: ${err}`
+              )
+            );
+          console.error(
+            `Something went wrong while handling application slash commands: ${err}`
+          );
+        });
+    });
+    console.info(`Registered ${commands.length} application commands`);
+  }
 }
 
 /**
@@ -158,16 +188,16 @@ function register_process_exit_callback(client: Client) {
  * Initializes a Discord client.
  *
  * @param {string} bot_token - Token used for communicating with the Discord Bot API.
- * @param {string} oath2_client_id - Token used for communicating with the Discord REST API.
+ * @param {GameSummaryMessage} response_message_structure - A structure for game summary messages.
+ * @param {string} application_id - Bot application ID for command registration.
  * @param {string[]} commands - Application commands to register.
- * @param {GameSummaryMessage} response_message_struture - A structure for game summary messages.
  * @returns {Promise<Client>} A Discord client.
  */
 export async function init_client(
   bot_token: string,
-  oath2_client_id: string,
-  commands: string[],
-  response_message_struture: GameSummaryMessage
+  response_message_structure: GameSummaryMessage,
+  application_id?: string,
+  commands?: SlashCommand[]
 ): Promise<Client> {
   console.info('Initializing Discord Client.');
 
@@ -176,11 +206,12 @@ export async function init_client(
     intents: CLIENT_INTENTS,
   });
 
-  // await register_application_commands(bot_token, oath2_client_id, commands);
+  if (application_id && commands) {
+    await register_application_commands(application_id, bot_token, commands);
+  }
 
   client.once(Events.ClientReady, async () => {
     console.info(`Logged in as ${client.user?.tag}.`);
-    console.info(`Caching messages for all allowed channels.`);
     await Promise.all(
       Config.ENABLED_CHANNEL_IDS.map((id) =>
         client.channels
@@ -200,7 +231,7 @@ export async function init_client(
   console.info('Logging in...');
   await client.login(bot_token);
 
-  register_callbacks(client, response_message_struture);
+  register_callbacks(client, response_message_structure, commands);
 
   register_process_exit_callback(client);
 

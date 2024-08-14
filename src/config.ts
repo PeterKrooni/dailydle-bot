@@ -2,19 +2,18 @@ import { config } from 'dotenv';
 
 export const REQUIRED_ENV_VARS: string[] = [
   'DISCORD_BOT_TOKEN',
-  'DISCORD_OAUTH2_CLIENT_ID',
   'DISCORD_ENABLED_CHANNEL_IDS',
   'DATABASE_URI',
 ];
 
-export const OPTIONAL_ENV_VARS: string[] = ['DISCORD_ADMIN_USER_ID'];
+export const OPTIONAL_ENV_VARS: string[] = [
+  'DISCORD_APPLICATION_ID',
+  'DISCORD_ADMIN_USER_ID',
+];
 
 const Config = {
   get DISCORD_BOT_TOKEN() {
     return process.env.DISCORD_BOT_TOKEN!;
-  },
-  get DISCORD_OATH2_CLIENT_ID() {
-    return process.env.DISCORD_OAUTH2_CLIENT_ID!;
   },
   get DATABASE_URI() {
     return process.env.DATABASE_URI!;
@@ -23,6 +22,10 @@ const Config = {
     return process.env
       .DISCORD_ENABLED_CHANNEL_IDS!.split(',')
       .filter((s) => s !== '');
+  },
+
+  get DISCORD_APPLICATION_ID() {
+    return process.env.DISCORD_APPLICATION_ID;
   },
   get DISCORD_ADMIN_USER_ID() {
     return process.env.DISCORD_ADMIN_USER_ID;

@@ -56,3 +56,5 @@ export class GameEntryBuilder {
     return { ...this.entry };
   }
 }
+
+export default GameEntryBuilder;
