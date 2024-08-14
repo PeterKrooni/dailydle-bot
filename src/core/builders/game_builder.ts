@@ -12,7 +12,7 @@ import { MatchParser, MatchType, MessageParser } from '../message_parser.js';
 export class GameBuilder {
   private name?: string;
 
-  private message_parser?: MessageParser;
+  private message_parsers: MessageParser[] = [];
   private regex?: RegExp;
   private match_order?: MatchType[];
   private day_id_parser?: MatchParser;
@@ -47,8 +47,8 @@ export class GameBuilder {
    * If the message parser is set, `set_matcher`, `set_day_id_parser` and
    * `set_score_parser` can be ignored.
    */
-  set_message_parser(message_parser: MessageParser): GameBuilder {
-    this.message_parser = message_parser;
+  add_message_parser(message_parser: MessageParser): GameBuilder {
+    this.message_parsers.push(message_parser);
     return this;
   }
 
@@ -137,18 +137,24 @@ export class GameBuilder {
    * @throws If the Game's regex or match order are undefined.
    */
   build(): Game {
+    if (this.name === undefined) {
+      throw new Error('Game name must have a value.');
+    }
+
     return new Game(
-      this.build_message_parser(),
+      this.name,
+      this.build_message_parsers(),
       this.build_formatter(),
       this.responder
     );
   }
 
-  private build_message_parser(): MessageParser {
-    if (this.message_parser !== undefined) {
-      return this.message_parser;
+  private build_message_parsers(): MessageParser[] {
+    if (this.message_parsers.length > 0) {
+      return this.message_parsers;
     }
 
+    // If `message_parsers` length is 0, we just build 1 parser below:
     if (this.name === undefined) {
       throw new Error('Game name must have a value.');
     }
@@ -161,13 +167,15 @@ export class GameBuilder {
       throw new Error('Game regex match order must have a value');
     }
 
-    return new MessageParser(
-      this.name,
-      this.regex,
-      this.match_order,
-      this.day_id_parser,
-      this.score_parser
-    );
+    return [
+      new MessageParser(
+        this.name,
+        this.regex,
+        this.match_order,
+        this.day_id_parser,
+        this.score_parser
+      ),
+    ];
   }
 
   private build_formatter(): EmbedFieldFormatter {

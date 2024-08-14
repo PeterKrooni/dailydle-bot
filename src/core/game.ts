@@ -14,25 +14,28 @@ export const DEFAULT_RESPONDER: Responder = (entry: GameEntry) =>
  * Represents a game. Handles message parsing and responding.
  */
 export class Game {
-  private message_parser: MessageParser;
+  name: string;
+  private message_parser: MessageParser[];
   private embed_field_formatter: EmbedFieldFormatter;
   private responder: Responder;
 
   /**
    * Creates a `Game` instance.
    *
-   * @param {MessageParser} message_parser - Parser used for validating and parsing discord messages
+   * @param {MessageParser} message_parsers - Parser used for validating and parsing discord messages
    * into game-specific entries.
    * @param {EmbedFieldFormatter} embed_field_formatter - Formatter used to structure an embed field.
    * @param {Responder} [responder=DEFAULT_RESPONDER] - Optional. The responder used for sending a
    * reply to valid game messages.
    */
   constructor(
-    message_parser: MessageParser,
+    name: string,
+    message_parsers: MessageParser[],
     embed_field_formatter: EmbedFieldFormatter,
     responder: Responder = DEFAULT_RESPONDER
   ) {
-    this.message_parser = message_parser;
+    this.name = name;
+    this.message_parser = message_parsers;
     this.embed_field_formatter = embed_field_formatter;
     this.responder = responder;
   }
@@ -43,20 +46,28 @@ export class Game {
    * - saved to a database via `GameEntryModel`,
    * - and replied to in Discord by the client.
    *
+   * The first parser that matches the message is used.
+   *
    * @param {Message} message - The message to validate.
    * @returns {Promise<GameEntry | null>} A promise that resolves to a `GameEntry` or `null` if the
    * message does not match.
    */
-  public async handle_message(message: Message): Promise<GameEntry | undefined> {
-    const entry = this.message_parser.parse_message(message);
-    if (entry == null) {
-      return undefined;
+  public async handle_message(
+    message: Message
+  ): Promise<GameEntry | undefined> {
+    for (const parser of this.message_parser) {
+      const entry = parser.parse_message(message);
+      if (entry == null) {
+        continue;
+      }
+
+      await Game.upsert_entry(entry);
+      await Game.send_response(message, this.responder(entry));
+
+      return entry;
     }
 
-    await Game.upsert_entry(entry);
-    await Game.send_response(message, this.responder(entry));
-
-    return entry;
+    return undefined;
   }
 
   private static async upsert_entry(entry: GameEntry) {
@@ -89,13 +100,6 @@ export class Game {
     inline: boolean = true
   ): Promise<EmbedField | null> =>
     await this.embed_field_formatter.get_embed_field(inline);
-
-  /**
-   * Returns the name of the game.
-   */
-  get name() {
-    return this.message_parser.name;
-  }
 }
 
 export default Game;
