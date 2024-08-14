@@ -91,7 +91,7 @@ function register_callbacks(
     if (message_is_valid(message)) {
       await Promise.all(games.map((game) => game.handle_message(message)))
         .then((games) => {
-          if (games.filter((entry) => entry !== null).length > 0)
+          if (games.filter((entry) => entry !== undefined).length > 0)
             console.info(
               `Found valid game message for games ${games
                 .filter((entry) => entry !== undefined)
