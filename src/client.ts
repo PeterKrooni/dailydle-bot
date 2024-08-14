@@ -89,12 +89,12 @@ function register_callbacks(
 
   client.on(Events.MessageCreate, async (message) => {
     if (message_is_valid(message)) {
-      await Promise.all(games.map((game) => game.match(message)))
+      await Promise.all(games.map((game) => game.handle_message(message)))
         .then((games) => {
           if (games.filter((entry) => entry !== null).length > 0)
             console.info(
               `Found valid game message for games ${games
-                .filter((entry) => entry !== null)
+                .filter((entry) => entry !== undefined)
                 .map((entry) => `'${entry.game}'`)
                 .join(', ')}.`
             );

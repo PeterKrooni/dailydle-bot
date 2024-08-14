@@ -47,10 +47,10 @@ export class Game {
    * @returns {Promise<GameEntry | null>} A promise that resolves to a `GameEntry` or `null` if the
    * message does not match.
    */
-  public async match(message: Message): Promise<GameEntry | null> {
+  public async handle_message(message: Message): Promise<GameEntry | undefined> {
     const entry = this.message_parser.parse_message(message);
     if (entry == null) {
-      return null;
+      return undefined;
     }
 
     await Game.upsert_entry(entry);
