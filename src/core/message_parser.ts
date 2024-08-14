@@ -53,7 +53,7 @@ export class MessageParser {
       return null;
     }
 
-    let entry_builder = new GameEntryBuilder(this.name).set_metadata(message);
+    const entry_builder = new GameEntryBuilder(this.name).set_metadata(message);
 
     for (const [idx, match_type] of this.match_order.entries()) {
       // We offset indices below by `1` as `string.match` returns the entire string in idx `0`:

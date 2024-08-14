@@ -14,7 +14,7 @@ export const Wordle = new GameBuilder('Wordle')
   .build();
 
 export const Connections = new GameBuilder('Connections')
-  .set_matcher(/Connections\s\sPuzzle\s\#(\d+)\s([\uD83D\uDFE6-\uDFEA\s]+)/, [
+  .set_matcher(/Connections\s\sPuzzle\s#(\d+)\s([🟩🟨🟦🟪\s]+)/u, [
     MatchType.Day,
     MatchType.Score,
   ])
@@ -38,7 +38,7 @@ export const Connections = new GameBuilder('Connections')
   )
   .set_responder(
     (entry) =>
-      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) > 4 ? 'failed' : 'did'} Connections ${entry.day_id} with ${entry.score == '0' ? 'no' : entry.score} mistakes`
+      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) >= 4 ? 'failed' : 'did'} Connections ${entry.day_id} with ${entry.score == '0' ? 'no' : entry.score} mistakes`
   )
   .build();
 
@@ -51,18 +51,20 @@ export const TheMini = new GameBuilder('The Mini')
     (entry) =>
       `${entry.user.server_name ?? entry.user.name} did The Mini in ${seconds_to_display_time(entry.score)}`
   )
-  .set_embed_field_score_formatter((score) => seconds_to_display_time(score))
+  .set_embed_field_score_formatter(
+    (user_link, score) => `${user_link} : ${seconds_to_display_time(score)}`
+  )
   .build();
 
 export const Strands = new GameBuilder('Strands')
-  .set_matcher(/Strands\s(#\d+)\s“.*”\s([💡🔵🟡\s]+)/, [
+  .set_matcher(/Strands\s(#\d+)\s“.*”\s([💡🔵🟡\s]+)/u, [
     MatchType.Day,
     MatchType.Score,
   ])
   .set_score_parser((match) => {
     const result = match.replace('\n', '');
-    const hints = result.match(/💡/g)?.length ?? 0;
-    const words = result.match(/[🔵🟡]/g)?.length ?? 0;
+    const hints = result.match(/💡/gu)?.length ?? 0;
+    const words = result.match(/[🔵🟡]/gu)?.length ?? 0;
 
     return `${hints},${words - hints},${words}`;
   })
@@ -73,8 +75,9 @@ export const Strands = new GameBuilder('Strands')
     }
     return `${entry.user.server_name ?? entry.user.name} did Strands ${entry.day_id} with ${hints} hints`;
   })
-  .set_embed_field_score_formatter((score) =>
-    score.split(',').slice(1).join(' / ')
+  .set_embed_field_score_formatter(
+    (user_link, score) =>
+      `${user_link} : ${score.split(',').slice(1).join('/')}`
   )
   .build();
 

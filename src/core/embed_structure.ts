@@ -2,9 +2,7 @@ import {
   APIEmbed,
   APIEmbedField,
   EmbedBuilder,
-  Message,
   MessageReaction,
-  PartialMessage,
   PartialMessageReaction,
 } from 'discord.js';
 import Game from './game.js';
@@ -65,8 +63,8 @@ export class GameSummaryMessage {
       embeds: await this.get_embeds(),
     };
 
-    await message
-      .channel!.send(payload)
+    await message.channel
+      .send(payload)
       .then(() =>
         console.log(
           `Sent reaction message to ${message.member?.displayName ?? message.author!.displayName}.`
@@ -87,20 +85,23 @@ export class GameSummaryMessage {
   }
 
   private async get_embeds(): Promise<APIEmbed[]> {
-    let embeds: APIEmbed[] = [];
+    const embeds: APIEmbed[] = [];
 
     for (const embed_structure of this.structure.embeds) {
       const fields: APIEmbedField[] = [];
 
       for (const field_structure of embed_structure.fields) {
-        fields.push(await field_structure.game.get_embed_field());
+        const field = await field_structure.game.get_embed_field();
+        if (field !== null) {
+          fields.push(field);
+        }
       }
 
       const footer_options = embed_structure.footer
         ? { text: embed_structure.footer }
         : null;
 
-      let embed = new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle(embed_structure.title)
         .setDescription(embed_structure.description)
         .addFields(fields)

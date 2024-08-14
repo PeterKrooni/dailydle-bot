@@ -1,5 +1,6 @@
 import {
   Client,
+  Events,
   GatewayIntentBits,
   Message,
   Partials,
@@ -8,7 +9,6 @@ import {
 } from 'discord.js';
 import { GameSummaryMessage } from './core/embed_structure.js';
 import Config from './config.js';
-import Game from './core/game.js';
 
 /**
  * Partial client permissions needed for this bot.
@@ -64,10 +64,8 @@ async function register_application_commands(
  * - that the message is less than 500 characters.
  */
 function message_is_valid(message: Message): boolean {
-  const enabled_channel_ids = Config.ENABLED_CHANNEL_IDS;
-
   return (
-    message.channel.id in enabled_channel_ids &&
+    Config.ENABLED_CHANNEL_IDS.includes(message.channel.id) &&
     !message.author.bot &&
     message.content.length <= 500
   );
@@ -85,39 +83,61 @@ function register_callbacks(
 ) {
   const games = game_summary_message.get_games();
 
-  client.on('messageCreate', async (message) => {
-    console.debug('Message received.');
+  client.on(Events.MessageCreate, async (message) => {
     if (message_is_valid(message)) {
-      console.debug('Message is valid');
-      let passed = [];
-      for (const game of games) {
-        if ((await game.match(message)) !== null) {
-          passed.push(game.name);
-        }
-      }
-
-      if (passed.length > 0) {
-        console.info(
-          `Found valid game message for games ${passed.map((n) => `'${n}'`).join(', ')}.`
-        );
-      }
+      await Promise.all(games.map((game) => game.match(message)))
+        .then((games) => {
+          if (games.filter((entry) => entry !== null).length > 0)
+            console.info(
+              `Found valid game message for games ${games
+                .filter((entry) => entry !== null)
+                .map((entry) => `'${entry.game}'`)
+                .join(', ')}.`
+            );
+        })
+        .catch((err) => console.warn(`Message callback failed: ${err}.`));
     }
   });
 
-  client.on('messageReactionAdd', async (message_reaction, user) => {
+  console.info(
+    `Registered callbacks for: ${game_summary_message
+      .get_games()
+      .map((g) => g.name)
+      .join(', ')}.`
+  );
+
+  client.on(Events.MessageReactionAdd, async (message_reaction, user) => {
+    const channel_id = message_reaction.message.channel.id;
+    const last_message = message_reaction.message.channel.lastMessage;
+    const bot_id = message_reaction.client.user.id;
+
     if (
-      message_reaction.message.channel.id in Config.ENABLED_CHANNEL_IDS &&
-      !user.bot
+      Config.ENABLED_CHANNEL_IDS.includes(channel_id) &&
+      !user.bot &&
+      !(last_message?.author.id === bot_id && last_message?.embeds.length > 0)
     ) {
-      await game_summary_message.send(message_reaction);
+      console.info('Valid reaction found, sending summary message.');
+      await game_summary_message.send(message_reaction).catch((err) => {
+        console.error(
+          `Something went wrong while sending game summary message: ${err}`
+        );
+      });
     }
   });
+
+  console.info(`Registered message reaction callback.`);
 }
 
+/**
+ * Registers an exit handler on `SIGINT` and `SIGTERM` that destroys the given client.
+ *
+ * @param {Client} client - The client to destroy
+ */
 function register_process_exit_callback(client: Client) {
-  process.on('SIGINT', async () => {
+  const exit_callback = async () => {
     console.info('Shutdown requested, destroying client.');
-    client
+
+    await client
       .destroy()
       .then(() => {
         console.info('Client destroyed. Exiting.');
@@ -126,7 +146,12 @@ function register_process_exit_callback(client: Client) {
       .catch((err) => {
         console.error(`Something went wrong while destroying client: ${err}`);
       });
-  });
+  };
+
+  process.on('SIGINT', exit_callback.bind(null));
+  process.on('SIGTERM', exit_callback.bind(null));
+
+  console.debug('Registered exit command callbacks.');
 }
 
 /**
@@ -153,18 +178,30 @@ export async function init_client(
 
   // await register_application_commands(bot_token, oath2_client_id, commands);
 
-  client.on('ready', () => console.info(`Logged in as ${client.user?.tag}.`));
+  client.once(Events.ClientReady, async () => {
+    console.info(`Logged in as ${client.user?.tag}.`);
+    console.info(`Caching messages for all allowed channels.`);
+    await Promise.all(
+      Config.ENABLED_CHANNEL_IDS.map((id) =>
+        client.channels
+          .fetch(id, { cache: true })
+          .then(() =>
+            console.debug(`Cached messages for allowed channel ${id}.`)
+          )
+          .catch((err) =>
+            console.warn(
+              `Failed to cache messages for allowed channel ${id}: ${err}`
+            )
+          )
+      )
+    );
+  });
 
-  console.info('Logging in with bot.');
+  console.info('Logging in...');
   await client.login(bot_token);
 
-  console.info(
-    `Registering callbacks for: ${response_message_struture
-      .get_games()
-      .map((g) => g.name)
-      .join(', ')}.`
-  );
   register_callbacks(client, response_message_struture);
+
   register_process_exit_callback(client);
 
   return client;

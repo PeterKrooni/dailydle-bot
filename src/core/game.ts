@@ -1,5 +1,5 @@
 import { EmbedField, Message } from 'discord.js';
-import { MatchType, MessageParser, ParseSpec } from './message_parser.js';
+import { MessageParser } from './message_parser.js';
 import { GameEntry, GameEntryModel } from './database/schema.js';
 import { EmbedFieldFormatter } from './embed_formatter.js';
 
@@ -48,7 +48,7 @@ export class Game {
    * message does not match.
    */
   public async match(message: Message): Promise<GameEntry | null> {
-    let entry = this.message_parser.parse_message(message);
+    const entry = this.message_parser.parse_message(message);
     if (entry == null) {
       return null;
     }
@@ -60,12 +60,23 @@ export class Game {
   }
 
   private static async upsert_entry(entry: GameEntry) {
-    return await GameEntryModel.findOneAndUpdate(entry);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
+
+    const filter = {
+      createdAt: { $gte: today },
+      game: entry.game,
+      day_id: entry.day_id,
+      'user.id': entry.user.id,
+    };
+    const options = { upsert: true };
+
+    return await GameEntryModel.findOneAndUpdate(filter, entry, options);
   }
 
   private static async send_response(message: Message, content: string) {
-    let sent_message = await message.channel.send(content);
-    sent_message.react('📋');
+    const sent_message = await message.channel.send(content);
+    await sent_message.react('📋');
   }
 
   /**
@@ -74,8 +85,10 @@ export class Game {
    * @param {boolean} [inline=true] - Whether the embed should be inline or not.
    * @returns {Promise<EmbedField>} An embed field.
    */
-  public get_embed_field = (inline: boolean = true): Promise<EmbedField> =>
-    this.embed_field_formatter.get_embed_field(inline);
+  public get_embed_field = async (
+    inline: boolean = true
+  ): Promise<EmbedField | null> =>
+    await this.embed_field_formatter.get_embed_field(inline);
 
   /**
    * Returns the name of the game.

@@ -20,7 +20,9 @@ const Config = {
     return process.env.DATABASE_URI!;
   },
   get ENABLED_CHANNEL_IDS() {
-    return process.env.DISCORD_ENABLED_CHANNEL_IDS!.split(',');
+    return process.env
+      .DISCORD_ENABLED_CHANNEL_IDS!.split(',')
+      .filter((s) => s !== '');
   },
   get DISCORD_ADMIN_USER_ID() {
     return process.env.DISCORD_ADMIN_USER_ID;
@@ -35,7 +37,7 @@ const Config = {
 
     // Check required vars
     REQUIRED_ENV_VARS.forEach((v) => {
-      let missing_args = [];
+      const missing_args = [];
       if (!(v in process.env)) {
         missing_args.push(v);
       }

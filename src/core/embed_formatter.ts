@@ -51,8 +51,10 @@ export class EmbedFieldFormatter {
    * Initializes an `EmbedFieldFormatter`.
    *
    * @param {string} name - The name of the game, used as the title of the embed field.
-   * @param {ScoreSorter} score_sorter - Score sorting function for displaying top entries.
-   * @param {ScoreFormatter} score_formatter - Score formatting function for displaying game entries.
+   * @param {ScoreSorter} [score_sorter=DEFAULT_SCORE_SORTER] - Score sorting function for
+   * displaying top entries.
+   * @param {ScoreFormatter} [score_formatter=DEFAULT_SCORE_FORMATTER] - Score formatting function
+   * for displaying game entries.
    * @param {number} [max_entries=5] - Optional. The maximum entries to show in the field, the
    * remainder being displayed as `+N`.
    */
@@ -74,14 +76,16 @@ export class EmbedFieldFormatter {
    * @param {boolean} [inline=true] - Whether the embed field should be inline.
    * @returns {Promise<EmbedField>} The embed field.
    */
-  public async get_embed_field(inline: boolean = true): Promise<EmbedField> {
+  public async get_embed_field(
+    inline: boolean = true
+  ): Promise<EmbedField | null> {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
 
     let entries = await GameEntryModel.find({
       game: this.name,
       createdAt: { $gte: today },
-    });
+    }).exec();
     entries.sort(this.score_sorter);
 
     // Handle max entries. If `max_entries` is set, slice the array and
@@ -93,7 +97,13 @@ export class EmbedFieldFormatter {
       entries = entries.slice(0, this.max_entries);
     }
 
-    let value = entries.map(this.format_entry).join('\n');
+    if (entries.length === 0) {
+      return null;
+    }
+
+    let value = entries
+      .map((e) => EmbedFieldFormatter.format_entry(e, this.score_formatter))
+      .join('\n');
 
     // Add remainder if applicable
     if (remainder > 0) {
@@ -113,10 +123,13 @@ export class EmbedFieldFormatter {
    * @param {GameEntry} entry - The entry to format.
    * @returns {string} The formatted entry.
    */
-  private format_entry(entry: GameEntry): string {
+  private static format_entry(
+    entry: GameEntry,
+    score_formatter: ScoreFormatter
+  ): string {
     const message_url = `https://discord.com/channels/${entry.server_id}/${entry.channel_id}/${entry.message_id}`;
     const user = `[${entry.user.server_name ?? entry.user.name}](${message_url})`;
 
-    return this.score_formatter(user, entry.score);
+    return score_formatter(user, entry.score);
   }
 }

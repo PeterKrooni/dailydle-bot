@@ -7,9 +7,13 @@ import * as NYT from './games/new_york_times.js';
 
 Config.load_config();
 
+const response_message_content = () =>
+  `**Dailydle** - ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}
+  
+Share your dailydle scores in this channel to register your entry`;
+
 const response_message = new GameSummaryMessage({
-  content: () =>
-    `**Dailydle** - ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}`,
+  content: response_message_content,
   embeds: [
     {
       title: 'New York Times',
@@ -36,7 +40,7 @@ const response_message = new GameSummaryMessage({
 
 await init_database();
 
-const client = await init_client(
+await init_client(
   Config.DISCORD_BOT_TOKEN,
   Config.DISCORD_OATH2_CLIENT_ID,
   [],
