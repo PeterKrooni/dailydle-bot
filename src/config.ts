@@ -7,8 +7,7 @@ export const REQUIRED_ENV_VARS: string[] = [
 ];
 
 export const OPTIONAL_ENV_VARS: string[] = [
-  'DISCORD_APPLICATION_ID',
-  'DISCORD_ADMIN_USER_ID',
+  'DISCORD_APPLICATION_ID'
 ];
 
 const Config = {
@@ -26,9 +25,6 @@ const Config = {
 
   get DISCORD_APPLICATION_ID() {
     return process.env.DISCORD_APPLICATION_ID;
-  },
-  get DISCORD_ADMIN_USER_ID() {
-    return process.env.DISCORD_ADMIN_USER_ID;
   },
 
   /**
