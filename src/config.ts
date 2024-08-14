@@ -6,9 +6,7 @@ export const REQUIRED_ENV_VARS: string[] = [
   'DATABASE_URI',
 ];
 
-export const OPTIONAL_ENV_VARS: string[] = [
-  'DISCORD_APPLICATION_ID'
-];
+export const OPTIONAL_ENV_VARS: string[] = ['DISCORD_APPLICATION_ID'];
 
 const Config = {
   get DISCORD_BOT_TOKEN() {
