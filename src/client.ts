@@ -49,10 +49,8 @@ async function register_application_commands(
     })
     .then(() => {
       console.info('Registered Application Commands successfully.');
-      // TODO: Log
     })
     .catch((err) => {
-      // TODO: Log err
       console.error(`Could not register Application Commands: ${err}`);
       process.exit(1);
     });
