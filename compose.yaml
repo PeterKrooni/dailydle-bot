@@ -6,10 +6,10 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - mongodata:/data/db
+      - 'mongodata:/data/db'
 
   app:
-    build: .
+    build: '.'
     container_name: 'app'
     environment:
       DATABASE_URI: 'mongodb://mongodb:27017/dailydle'
@@ -20,4 +20,4 @@ services:
 
 volumes:
   mongodata:
-    driver: local
+    driver: 'local'
