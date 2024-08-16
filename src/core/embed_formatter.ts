@@ -23,7 +23,7 @@ export interface ScoreFormatter {
  */
 export const DEFAULT_SCORE_SORTER: ScoreSorter = (
   a: GameEntry,
-  b: GameEntry
+  b: GameEntry,
 ) => {
   const x = parseInt(a.score);
   const y = parseInt(b.score);
@@ -35,7 +35,7 @@ export const DEFAULT_SCORE_SORTER: ScoreSorter = (
  */
 export const DEFAULT_SCORE_FORMATTER: ScoreFormatter = (
   user_link: string,
-  score: string
+  score: string,
 ) => `${user_link} : ${score}`;
 
 /**
@@ -62,7 +62,7 @@ export class EmbedFieldFormatter {
     name: string,
     score_sorter: ScoreSorter = DEFAULT_SCORE_SORTER,
     score_formatter: ScoreFormatter = DEFAULT_SCORE_FORMATTER,
-    max_entries: number = 5
+    max_entries: number = 5,
   ) {
     this.name = name;
     this.score_sorter = score_sorter;
@@ -77,7 +77,7 @@ export class EmbedFieldFormatter {
    * @returns {Promise<EmbedField>} The embed field.
    */
   public async get_embed_field(
-    inline: boolean = true
+    inline: boolean = true,
   ): Promise<EmbedField | null> {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
@@ -125,7 +125,7 @@ export class EmbedFieldFormatter {
    */
   private static format_entry(
     entry: GameEntry,
-    score_formatter: ScoreFormatter
+    score_formatter: ScoreFormatter,
   ): string {
     const message_url = `https://discord.com/channels/${entry.server_id}/${entry.channel_id}/${entry.message_id}`;
     const user = `[${entry.user.server_name ?? entry.user.name}](${message_url})`;

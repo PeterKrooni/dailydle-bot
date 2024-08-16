@@ -67,8 +67,8 @@ export class GameSummaryMessage {
       .send(payload)
       .then(() =>
         console.log(
-          `Sent reaction message to ${message.member?.displayName ?? message.author!.displayName}.`
-        )
+          `Sent reaction message to ${message.member?.displayName ?? message.author!.displayName}.`,
+        ),
       )
       .catch((err) => console.warn(`Could not send reaction message: ${err}`));
   }
@@ -80,7 +80,7 @@ export class GameSummaryMessage {
    */
   get_games(): Game[] {
     return this.structure.embeds.flatMap((embed) =>
-      embed.fields.map((field) => field.game)
+      embed.fields.map((field) => field.game),
     );
   }
 

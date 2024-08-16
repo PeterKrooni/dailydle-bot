@@ -32,7 +32,7 @@ export class Game {
     name: string,
     message_parsers: MessageParser[],
     embed_field_formatter: EmbedFieldFormatter,
-    responder: Responder = DEFAULT_RESPONDER
+    responder: Responder = DEFAULT_RESPONDER,
   ) {
     this.name = name;
     this.message_parser = message_parsers;
@@ -53,7 +53,7 @@ export class Game {
    * message does not match.
    */
   public async handle_message(
-    message: Message
+    message: Message,
   ): Promise<GameEntry | undefined> {
     for (const parser of this.message_parser) {
       const entry = parser.parse_message(message);
@@ -97,7 +97,7 @@ export class Game {
    * @returns {Promise<EmbedField>} An embed field.
    */
   public get_embed_field = async (
-    inline: boolean = true
+    inline: boolean = true,
   ): Promise<EmbedField | null> =>
     await this.embed_field_formatter.get_embed_field(inline);
 }

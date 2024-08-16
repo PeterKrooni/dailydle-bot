@@ -38,7 +38,7 @@ const CLIENT_INTENTS: GatewayIntentBits[] = [
 async function register_application_commands(
   application_id: string,
   bot_token: string,
-  commands: SlashCommand[]
+  commands: SlashCommand[],
 ) {
   console.info('Registering Application Commands.');
 
@@ -83,7 +83,7 @@ function message_is_valid(message: Message): boolean {
 function register_callbacks(
   client: Client,
   game_summary_message: GameSummaryMessage,
-  commands?: SlashCommand[]
+  commands?: SlashCommand[],
 ) {
   const games = game_summary_message.get_games();
 
@@ -96,7 +96,7 @@ function register_callbacks(
               `Found valid game message for games ${games
                 .filter((entry) => entry !== undefined)
                 .map((entry) => `'${entry.game}'`)
-                .join(', ')}.`
+                .join(', ')}.`,
             );
         })
         .catch((err) => console.warn(`Message callback failed: ${err}.`));
@@ -106,7 +106,7 @@ function register_callbacks(
     `Registered callbacks for: ${game_summary_message
       .get_games()
       .map((g) => g.name)
-      .join(', ')}.`
+      .join(', ')}.`,
   );
 
   client.on(Events.MessageReactionAdd, async (message_reaction, user) => {
@@ -122,7 +122,7 @@ function register_callbacks(
       console.info('Valid reaction found, sending summary message.');
       await game_summary_message.send(message_reaction).catch((err) => {
         console.error(
-          `Something went wrong while sending game summary message: ${err}`
+          `Something went wrong while sending game summary message: ${err}`,
         );
       });
     }
@@ -137,8 +137,8 @@ function register_callbacks(
         commands.map((command) =>
           command.definition.name === interaction.commandName
             ? command.handler(interaction)
-            : undefined
-        )
+            : undefined,
+        ),
       )
         .then(() => console.info('Handled interaction commands.'))
         .catch((err) => {
@@ -146,11 +146,11 @@ function register_callbacks(
             .reply('Something went wrong 😿')
             .catch((err) =>
               console.error(
-                `Something went wrong while sending 'Something went wrong' reply to interaction: ${err}`
-              )
+                `Something went wrong while sending 'Something went wrong' reply to interaction: ${err}`,
+              ),
             );
           console.error(
-            `Something went wrong while handling application slash commands: ${err}`
+            `Something went wrong while handling application slash commands: ${err}`,
           );
         });
     });
@@ -197,7 +197,7 @@ export async function init_client(
   bot_token: string,
   response_message_structure: GameSummaryMessage,
   application_id?: string,
-  commands?: SlashCommand[]
+  commands?: SlashCommand[],
 ): Promise<Client> {
   console.info('Initializing Discord Client.');
 
@@ -217,14 +217,14 @@ export async function init_client(
         client.channels
           .fetch(id, { cache: true })
           .then(() =>
-            console.debug(`Cached messages for allowed channel ${id}.`)
+            console.debug(`Cached messages for allowed channel ${id}.`),
           )
           .catch((err) =>
             console.warn(
-              `Failed to cache messages for allowed channel ${id}: ${err}`
-            )
-          )
-      )
+              `Failed to cache messages for allowed channel ${id}: ${err}`,
+            ),
+          ),
+      ),
     );
   });
 

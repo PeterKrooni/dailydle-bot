@@ -38,7 +38,7 @@ export class MessageParser {
     regex: RegExp,
     match_order: MatchType[],
     day_id_parser: MatchParser = DEFAULT_MATCH_PARSER,
-    score_parser: MatchParser = DEFAULT_MATCH_PARSER
+    score_parser: MatchParser = DEFAULT_MATCH_PARSER,
   ) {
     this.name = name;
     this.regex = regex;

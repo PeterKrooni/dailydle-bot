@@ -41,7 +41,7 @@ const Config = {
 
       if (missing_args.length > 0) {
         throw new Error(
-          `Missing required environment variables: ${missing_args.join(', ')}`
+          `Missing required environment variables: ${missing_args.join(', ')}`,
         );
       }
     });

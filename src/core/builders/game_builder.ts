@@ -107,7 +107,7 @@ export class GameBuilder {
    * Sets the formatter used for displaying a user and their score in the embed field.
    */
   set_embed_field_score_formatter(
-    score_formatter: ScoreFormatter
+    score_formatter: ScoreFormatter,
   ): GameBuilder {
     this.score_formatter = score_formatter;
     return this;
@@ -145,7 +145,7 @@ export class GameBuilder {
       this.name,
       this.build_message_parsers(),
       this.build_formatter(),
-      this.responder
+      this.responder,
     );
   }
 
@@ -173,7 +173,7 @@ export class GameBuilder {
         this.regex,
         this.match_order,
         this.day_id_parser,
-        this.score_parser
+        this.score_parser,
       ),
     ];
   }
@@ -190,7 +190,7 @@ export class GameBuilder {
       this.name,
       this.score_sorter,
       this.score_formatter,
-      this.max_entries
+      this.max_entries,
     );
   }
 }

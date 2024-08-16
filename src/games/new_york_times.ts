@@ -9,7 +9,7 @@ export const Wordle = new GameBuilder('Wordle')
   ])
   .set_responder(
     (entry) =>
-      `${entry.user.server_name ?? entry.user.name} scored ${entry.score} on Wordle ${entry.day_id}`
+      `${entry.user.server_name ?? entry.user.name} scored ${entry.score} on Wordle ${entry.day_id}`,
   )
   .build();
 
@@ -28,17 +28,17 @@ export const Connections = new GameBuilder('Connections')
               line
                 .trim()
                 .split('\uD83D')
-                .filter((n) => n !== '')
+                .filter((n) => n !== ''),
             ).size == 1
               ? 0
               : 1),
-        0
+        0,
       )
-      .toString()
+      .toString(),
   )
   .set_responder(
     (entry) =>
-      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) >= 4 ? 'failed' : 'did'} Connections ${entry.day_id} with ${entry.score == '0' ? 'no' : entry.score} mistakes`
+      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) >= 4 ? 'failed' : 'did'} Connections ${entry.day_id} with ${entry.score == '0' ? 'no' : entry.score} mistakes`,
   )
   .build();
 
@@ -49,10 +49,10 @@ export const TheMini = new GameBuilder('The Mini')
   ])
   .set_responder(
     (entry) =>
-      `${entry.user.server_name ?? entry.user.name} did The Mini in ${seconds_to_display_time(entry.score)}`
+      `${entry.user.server_name ?? entry.user.name} did The Mini in ${seconds_to_display_time(entry.score)}`,
   )
   .set_embed_field_score_formatter(
-    (user_link, score) => `${user_link} : ${seconds_to_display_time(score)}`
+    (user_link, score) => `${user_link} : ${seconds_to_display_time(score)}`,
   )
   .build();
 
@@ -77,7 +77,7 @@ export const Strands = new GameBuilder('Strands')
   })
   .set_embed_field_score_formatter(
     (user_link, score) =>
-      `${user_link} : ${score.split(',').slice(1).join('/')}`
+      `${user_link} : ${score.split(',').slice(1).join('/')}`,
   )
   .build();
 

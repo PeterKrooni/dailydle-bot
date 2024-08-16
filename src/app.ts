@@ -62,5 +62,5 @@ await init_client(
   Config.DISCORD_BOT_TOKEN,
   response_message,
   Config.DISCORD_APPLICATION_ID,
-  commands
+  commands,
 );

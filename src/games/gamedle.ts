@@ -33,7 +33,7 @@ export const Classic = new GameBuilder('Gamedle (Classic)')
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_DEFAULT_ATTEMPTS))
   .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS)
+    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS),
   )
   .set_responder(gamedle_responder(GAMEDLE_DEFAULT_ATTEMPTS))
   .build();
@@ -45,7 +45,7 @@ export const Artwork = new GameBuilder('Gamedle (Artwork)')
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_DEFAULT_ATTEMPTS))
   .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS)
+    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS),
   )
   .set_responder(gamedle_responder(GAMEDLE_DEFAULT_ATTEMPTS))
   .build();
@@ -57,7 +57,7 @@ export const Keywords = new GameBuilder('Gamedle (Keywords)')
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_DEFAULT_ATTEMPTS))
   .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS)
+    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS),
   )
   .set_responder(gamedle_responder(GAMEDLE_DEFAULT_ATTEMPTS))
   .build();
@@ -69,7 +69,7 @@ export const Guess = new GameBuilder('Gamedle (Guess)')
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_GUESS_ATTEMPTS))
   .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_GUESS_ATTEMPTS)
+    gamedle_score_formatter(GAMEDLE_GUESS_ATTEMPTS),
   )
   .set_responder(gamedle_responder(GAMEDLE_GUESS_ATTEMPTS))
   .build();

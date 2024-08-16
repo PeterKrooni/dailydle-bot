@@ -31,7 +31,7 @@ const schema = new Schema<GameEntry, Model<GameEntry>>(
     server_id: { type: String, required: true },
     content: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const GameEntryModel = model('GameEntry', schema);
