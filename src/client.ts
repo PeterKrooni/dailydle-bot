@@ -3,9 +3,13 @@ import {
   Events,
   GatewayIntentBits,
   Message,
+  MessageReaction,
+  PartialMessageReaction,
   Partials,
+  PartialUser,
   REST,
   Routes,
+  User,
 } from 'discord.js';
 import { GameSummaryMessage } from './core/embed_structure.js';
 import Config from './config.js';
@@ -57,7 +61,7 @@ async function register_application_commands(
 }
 
 /**
- * Checks whether a message is valid or not.
+ * Checks whether a message is valid.
  *
  * Checks whether the message is:
  * - in an enabled channel,
@@ -70,6 +74,40 @@ function message_is_valid(message: Message): boolean {
     !message.author.bot &&
     message.content.length <= 500
   );
+}
+
+/**
+ * Checks wheter a message reaction is valid.
+ * 
+ * Checks whether the message reaction is:
+ * - in an enabled channel,
+ * - not added by a bot user,
+ * - that the last message in the channel was not a Game Summary message.
+ * 
+ * The rationale for blocking reaction events if the last message was a summary message
+ * is that the only reason we handle reaction events is to post said message.
+ * We don't want to spam a channel with messages if we can avoid it.
+ * 
+ * related TODO: maybe add a slash-command that posts the summary.
+ */
+function message_reaction_is_valid(
+  message_reaction: MessageReaction | PartialMessageReaction,
+  user: User | PartialUser,
+): boolean {
+  const last_message = message_reaction.message.channel.lastMessage;
+
+  // Reaction is in enabled channel
+  const channel_is_enabled = Config.ENABLED_CHANNEL_IDS.includes(
+    message_reaction.message.channel.id,
+  );
+
+  // If the last message posted was posted by this bot and contains embeds, it's probably the Game
+  // Summary message.
+  const last_message_was_game_summary =
+    last_message?.author.id === message_reaction.client.user.id &&
+    last_message.embeds.length > 0;
+
+  return !user.bot && channel_is_enabled && !last_message_was_game_summary;
 }
 
 /**
@@ -108,14 +146,7 @@ function register_callbacks(
   );
 
   client.on(Events.MessageReactionAdd, async (message_reaction, user) => {
-    const channel_id = message_reaction.message.channel.id;
-    const last_message = message_reaction.message.channel.lastMessage;
-    const bot_id = message_reaction.client.user.id;
-
-    if (
-      Config.ENABLED_CHANNEL_IDS.includes(channel_id) &&
-      !user.bot &&
-      !(last_message?.author.id === bot_id && last_message?.embeds.length > 0)
+    if (message_reaction_is_valid(message_reaction, user)
     ) {
       console.info('Valid reaction found, sending summary message.');
       await game_summary_message.send(message_reaction).catch((err) => {
