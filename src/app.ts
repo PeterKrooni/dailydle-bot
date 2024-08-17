@@ -9,7 +9,7 @@ import * as NYT from './games/new_york_times.js';
 import { GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
 
-Config.load_config();
+// #region Constants
 
 const response_message_content = () =>
   `**Dailydle** - ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -55,6 +55,10 @@ const commands = [
     })
     .build(),
 ];
+
+// #endregion
+
+Config.load_config();
 
 await init_database();
 
