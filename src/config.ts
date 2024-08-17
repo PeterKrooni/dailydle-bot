@@ -32,7 +32,7 @@ const Config = {
     // Load config from dotenv
     config();
 
-    // Check required vars
+    // Check required variables
     REQUIRED_ENV_VARS.forEach((v) => {
       const missing_args = [];
       if (!(v in process.env)) {

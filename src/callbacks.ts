@@ -31,7 +31,7 @@ function message_is_valid(message: Message): boolean {
 }
 
 /**
- * Checks wheter a message reaction is valid.
+ * Checks whether a message reaction is valid.
  *
  * Checks whether the message reaction is:
  * - in an enabled channel,
