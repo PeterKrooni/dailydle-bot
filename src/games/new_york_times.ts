@@ -71,7 +71,7 @@ export const Strands = new GameBuilder('Strands')
   .set_responder((entry) => {
     const hints = entry.score.split(',')[0];
     if (hints == '0') {
-      return `${entry.user.server_name ?? entry.user.name} got 🌟perfect🌟 on Strands ${entry.day_id}`;
+      return `${entry.user.server_name ?? entry.user.name} got ✨perfect✨ on Strands ${entry.day_id}`;
     }
     return `${entry.user.server_name ?? entry.user.name} did Strands ${entry.day_id} with ${hints} hints`;
   })
