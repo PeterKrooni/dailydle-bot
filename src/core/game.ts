@@ -2,6 +2,7 @@ import { EmbedField, Message } from 'discord.js';
 import { MessageParser } from './message_parser.js';
 import { GameEntry, GameEntryModel } from './database/schema.js';
 import { EmbedFieldFormatter } from './embed_formatter.js';
+import { get_today } from '../util.js';
 
 export interface Responder {
   (entry: GameEntry): string;
@@ -71,11 +72,8 @@ export class Game {
   }
 
   private static async upsert_entry(entry: GameEntry) {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
-
     const filter = {
-      createdAt: { $gte: today },
+      createdAt: { $gte: get_today() },
       game: entry.game,
       day_id: entry.day_id,
       'user.id': entry.user.id,

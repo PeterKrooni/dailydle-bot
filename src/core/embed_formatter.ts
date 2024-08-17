@@ -1,5 +1,6 @@
 import { EmbedField } from 'discord.js';
 import { GameEntry, GameEntryModel } from './database/schema.js';
+import { get_today } from '../util.js';
 
 /**
  * A function that sorts game entries.
@@ -79,12 +80,9 @@ export class EmbedFieldFormatter {
   public async get_embed_field(
     inline: boolean = true,
   ): Promise<EmbedField | null> {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
-
     let entries = await GameEntryModel.find({
       game: this.name,
-      createdAt: { $gte: today },
+      createdAt: { $gte: get_today() },
     }).exec();
     entries.sort(this.score_sorter);
 
