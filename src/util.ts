@@ -11,5 +11,5 @@ export function seconds_to_display_time(seconds: number | string): string {
 
 export function get_today(): Date {
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
