@@ -1,5 +1,5 @@
 import { GameBuilder } from '../core/builders/game_builder.js';
-import { MatchType } from '../core/message_parser.js';
+import { MatchType, MessageParser } from '../core/message_parser.js';
 import { seconds_to_display_time } from '../util.js';
 
 export const Wordle = new GameBuilder('Wordle')
@@ -43,10 +43,33 @@ export const Connections = new GameBuilder('Connections')
   .build();
 
 export const TheMini = new GameBuilder('The Mini')
-  .set_matcher(/https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/, [
-    MatchType.Day,
-    MatchType.Score,
-  ])
+  .add_message_parser(
+    new MessageParser(
+      'The Mini',
+      /https:\/\/www\.nytimes\.com\/.*\?d=([\d-]+)&t=(\d+)/,
+      [MatchType.Day, MatchType.Score],
+    ),
+  )
+  .add_message_parser(
+    new MessageParser(
+      'The Mini',
+      /I solved the (\d+\/\d+\/\d+) New York Times Mini Crossword in ([\d:]+)!/,
+      [MatchType.Day, MatchType.Score],
+      (match) => new Date(`${match}Z`).toISOString().slice(0, 10),
+      (match) => {
+        // Takes a display time input e.g. `1:23:59` and converts it to seconds.
+        const HOUR_IN_SECONDS = 3600;
+        const unit_constants = [1, 60];
+        return match
+          .split(':') // Split on `:`
+          .map(Number) // Convert to integers
+          .reverse() // Reverse order so we start with seconds
+          .map((u, i) => u * (unit_constants.at(i) ?? HOUR_IN_SECONDS)) // Multiply by unit constant (second, minute, hour for everything else)
+          .reduce((acc, v) => acc + v, 0) // Sum
+          .toString(); // Return as string
+      },
+    ),
+  )
   .set_responder(
     (entry) =>
       `${entry.user.server_name ?? entry.user.name} did The Mini in ${seconds_to_display_time(entry.score)}`,
