@@ -43,7 +43,7 @@ async function register_application_commands(
   bot_token: string,
   commands: SlashCommand[],
 ) {
-  console.info('Registering Application Commands.');
+  console.info('Registering Application Commands to Discord.');
 
   const rest = new REST({ version: '10' }).setToken(bot_token);
   await rest
@@ -51,10 +51,10 @@ async function register_application_commands(
       body: commands.map((c) => c.definition),
     })
     .then(() => {
-      console.info('Registered Application Commands successfully.');
+      console.info('Registered Application Commands to Discord successfully.');
     })
     .catch((err) => {
-      console.error(`Could not register Application Commands: ${err}`);
+      console.error(`Could not register Application Commands to Discord: ${err}`);
       process.exit(1);
     });
 }

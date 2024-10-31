@@ -1,12 +1,12 @@
 {
   "name": "dailydle-bot",
-  "version": "1.0.0",
+  "version": "2.0.2",
   "description": "A discord bot to keep track of daily games.\r Written in javascript with node, with mongoDB as the database.",
-  "main": "index.js",
+  "main": "src/app.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && node build/src/app.js",
+    "start": "node --loader ts-node/esm .\\src\\app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -22,6 +22,7 @@
   "dependencies": {
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
-    "mongoose": "^8.5.2"
+    "mongoose": "^8.5.2",
+    "ts-node": "^10.9.2"
   }
 }

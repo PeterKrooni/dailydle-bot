@@ -44,14 +44,17 @@ const response_message = new GameSummaryMessage({
 
 const commands = [
   new CommandBuilder('backup')
-    .set_description('Save a backup of the database.')
-    .set_permissions(PermissionFlagsBits.Administrator)
+    .set_description('Save a raw backup of the database in <APP_ROOT>/dump-<CURRENT_DATE_AS_ISO>.json')
     .set_handler(async (interaction) => {
-      const data = await GameEntryModel.find({}).exec();
-      const filepath = `./dump-${new Date().toISOString().slice(0, 10)}.json`;
+      if (process.env.BOT_ADMIN_DISCORD_USER_ID === interaction.user.id) {
+        const data = await GameEntryModel.find({}).exec();
+        const filepath = `./dump-${new Date().toISOString().slice(0, 10)}.json`;
 
-      fs.writeFileSync(filepath, JSON.stringify(data), { flag: 'ax' });
-      await interaction.reply(`Backed up ${data.length} entries.`);
+        fs.writeFileSync(filepath, JSON.stringify(data), { flag: 'ax' });
+        await interaction.reply(`Backed up ${data.length} entries.`);
+      } else {
+        await interaction.reply(`Backup failed: you are not on the server side whitelist for running backups.`);
+      }
     })
     .build(),
 ];
