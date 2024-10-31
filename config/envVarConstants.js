@@ -1,2 +1,0 @@
-export const requiredEnvVars = ['DISCORD_OAUTH_CLIENT_ID', 'DISCORD_OAUTH_CLIENT_SECRET', 'DISCORD_BOT_TOKEN', 'DISCORD_ENABLED_CHANNEL_ID']
-export const optionalEnvVars = ['ADMIN_DISCORD_USER_ID']

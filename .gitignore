@@ -26,6 +26,9 @@ coverage
 # nyc test coverage
 .nyc_output
 
+# db dump files
+dump-*.json
+
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
@@ -37,6 +40,9 @@ bower_components
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
+
+# TSC build directory
+build/
 
 # Dependency directories
 node_modules/
@@ -121,6 +127,7 @@ dist
 .tern-port
 
 # Stores VSCode versions used for testing VSCode extensions
+.vscode
 .vscode-test
 
 # yarn v2

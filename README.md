@@ -1,28 +1,24 @@
 ## About
 
 A discord bot to keep track of daily games.
-Written in javascript with node, with mongoDB as the database.
+Written in TypeScript with Node, with MongoDB as the database.
 
 ## General
 
-`app.js` is the entrypoint of the application.
+`src/app.ts` is the entrypoint of the application.
 
 ### Configuration
 
 .env
 
-```.env
-# hentes på discord dev portal (under /applications)
-DISCORD_OAUTH_CLIENT_ID=
-DISCORD_OAUTH_CLIENT_SECRET=
-DISCORD_BOT_TOKEN=
-DISCORD_ENABLED_CHANNEL_ID=
+```ini
+# Required
+DISCORD_BOT_TOKEN=<your bot token>
+DATABASE_URI=<MongoDB URI>
+DISCORD_ENABLED_CHANNEL_IDS=<Comma seperated list of channels to monitor>
 
-# optional: enables bot admin features directly in discord channel
-ADMIN_DISCORD_USER_ID=
-
-# denne her må være en MongoDB connection string
-DAILYDLE_DB_URI=very cool repo :D
+# Optional
+DISCORD_APPLICATION_ID=<your bot application ID>
 ```
 
 ### Deployment & hosting
@@ -51,7 +47,7 @@ Use `docker compose up` to start bot and database as docker containers.
 - Node
 - Docker (optional)
 
-## Good boys
+## Kinda mid
 
 Jakob Snorrason
 

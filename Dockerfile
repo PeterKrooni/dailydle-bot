@@ -1,5 +1,7 @@
 FROM node:20-alpine
-WORKDIR /usr/app
-COPY ./ ./
+WORKDIR /app
+COPY . .
+
 RUN npm install
+
 ENTRYPOINT [ "npm", "start" ]
