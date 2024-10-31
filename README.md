@@ -8,7 +8,8 @@ Written in TypeScript with Node, with MongoDB as the database.
 `src/app.ts` is the entrypoint of the application.
 
 ### Configuration
-
+ 
+ 
 .env
 
 ```ini
