@@ -1,8 +1,13 @@
 {
   "branches": ["main", "next"],
   "plugins": [
-    ["@semantic-release/npm", {
-      "npmPublish": false
-    }]
+    [
+        "@semantic-release/npm", {
+            "npmPublish": false
+        },
+        "@semantic-release/git",
+        "@semantic-release/commit-analyzer",
+        "@semantic-release/release-notes-generator"
+    ]
   ]
 }
