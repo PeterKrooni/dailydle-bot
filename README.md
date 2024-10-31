@@ -8,7 +8,8 @@ Written in TypeScript with Node, with MongoDB as the database.
 `src/app.ts` is the entrypoint of the application.
 
 ### Configuration
-
+ 
+ 
 .env
 
 ```ini
@@ -16,9 +17,10 @@ Written in TypeScript with Node, with MongoDB as the database.
 DISCORD_BOT_TOKEN=<your bot token>
 DATABASE_URI=<MongoDB URI>
 DISCORD_ENABLED_CHANNEL_IDS=<Comma seperated list of channels to monitor>
+DISCORD_APPLICATION_ID=<your bot application ID>
 
 # Optional
-DISCORD_APPLICATION_ID=<your bot application ID>
+BOT_ADMIN_DISCORD_USER_ID=<Discord UserID of bot admin (for running privileged commands)>
 ```
 
 ### Deployment & hosting
