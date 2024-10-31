@@ -1,12 +1,13 @@
 {
-  "branches": ["main", "next"],
-  "plugins": [
-    [
-        "@semantic-release/git",
+    "branches": ["main", "next"],
+    "plugins": [
         "@semantic-release/changelog",
-        "@semantic-release/npm", {
+        [
+        "@semantic-release/npm",
+        {
             "npmPublish": false
         }
+        ],
+        "@semantic-release/git"
     ]
-  ]
 }
