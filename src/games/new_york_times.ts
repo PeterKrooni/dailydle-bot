@@ -14,7 +14,7 @@ export const Wordle = new GameBuilder('Wordle')
   .build();
 
 export const Connections = new GameBuilder('Connections')
-  .set_matcher(/Connections\s\sPuzzle\s#(\d+)\s([🟩🟨🟦🟪\s]+)/u, [
+  .set_matcher(/Connections\sPuzzle\s#(\d+)\s([🟩🟨🟦🟪\s]+)/u, [
     MatchType.Day,
     MatchType.Score,
   ])
@@ -38,7 +38,7 @@ export const Connections = new GameBuilder('Connections')
   )
   .set_responder(
     (entry) =>
-      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) >= 4 ? 'failed' : 'did'} Connections ${entry.day_id} with ${entry.score == '0' ? 'no' : entry.score} mistakes`,
+      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) < 4 ? 'did' : 'failed'} Connections ${entry.day_id} ${Number(entry.score) < 4 ? 'with' : 'after'} ${entry.score == '0' ? 'no' : entry.score} mistakes`,
   )
   .build();
 
