@@ -4,9 +4,10 @@ export const REQUIRED_ENV_VARS: string[] = [
   'DISCORD_BOT_TOKEN',
   'DISCORD_ENABLED_CHANNEL_IDS',
   'DATABASE_URI',
+  'DISCORD_APPLICATION_ID'
 ];
 
-export const OPTIONAL_ENV_VARS: string[] = ['DISCORD_APPLICATION_ID'];
+export const OPTIONAL_ENV_VARS: string[] = ['BOT_ADMIN_DISCORD_USER_ID'];
 
 const Config = {
   get DISCORD_BOT_TOKEN() {
@@ -32,19 +33,15 @@ const Config = {
     // Load config from dotenv
     config();
 
-    // Check required variables
-    REQUIRED_ENV_VARS.forEach((v) => {
-      const missing_args = [];
-      if (!(v in process.env)) {
-        missing_args.push(v);
-      }
+    const missing_optional_args = OPTIONAL_ENV_VARS.filter(v => !(v in process.env))
+    if (missing_optional_args.length > 0) {
+      console.warn(`Missing optional environment variable(s) ${missing_optional_args.join(', ')}. Bot might have unexpected behaviour or missing features.`)
+    }
 
-      if (missing_args.length > 0) {
-        throw new Error(
-          `Missing required environment variables: ${missing_args.join(', ')}`,
-        );
-      }
-    });
+    const missing_required_args = REQUIRED_ENV_VARS.filter(v => !(v in process.env))
+    if (missing_required_args.length > 0) {
+      throw new Error(`Missing required environment variables: ${missing_required_args.join(', ')}`,);
+    }
 
     // Validate `DISCORD_ENABLED_CHANNEL_IDS` format
     if (process.env.DISCORD_ENABLED_CHANNEL_IDS!.match(/(\d+),?/g) === null) {
