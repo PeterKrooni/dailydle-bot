@@ -14,6 +14,7 @@ export interface GameEntry {
   channel_id: Snowflake;
   server_id: Snowflake;
   content?: string;
+  schema_version: string
 }
 
 const schema = new Schema<GameEntry, Model<GameEntry>>(
@@ -30,6 +31,7 @@ const schema = new Schema<GameEntry, Model<GameEntry>>(
     channel_id: { type: String, required: true },
     server_id: { type: String, required: true },
     content: String,
+    schema_version: { type: String, default: "2" },
   },
   { timestamps: true },
 );
