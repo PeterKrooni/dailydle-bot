@@ -6,6 +6,7 @@ import { init_database } from './core/database/util.js';
 import { GameSummaryMessage } from './core/embed_structure.js';
 import * as Gamedle from './games/gamedle.js';
 import * as NYT from './games/new_york_times.js';
+import * as NRK from './games/nrk.js';
 import { GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
 
@@ -28,6 +29,14 @@ const response_message = new GameSummaryMessage({
         { game: NYT.TheMini, inline: true },
         { game: NYT.Strands, inline: true },
       ],
+    },
+    {
+      title: 'NRK',
+      description: NRK.Description,
+      fields: [
+        { game: NRK.Tvers, inline: true },
+        { game: NRK.Former, inline: true },
+      ]
     },
     {
       title: 'Gamedle',
