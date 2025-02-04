@@ -2,7 +2,7 @@ import { GameBuilder } from '../core/builders/game_builder.js';
 import { MatchType, MessageParser } from '../core/message_parser.js';
 
 
-export const Tvers = new GameBuilder('Tvers')  
+export const Tvers = new GameBuilder('Tvers') 
   .add_message_parser(
     new MessageParser(
       'Tvers',
@@ -13,8 +13,6 @@ export const Tvers = new GameBuilder('Tvers')
     ),
   )
   .set_responder((entry) => {
-    console.log('have entry: ', entry)
-    const d = new Date();
     return `${entry.user.server_name ?? entry.user.name} did Tvers ${entry.day_id} with score ${entry.score}.`;
   })
   .set_embed_field_score_formatter(

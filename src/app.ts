@@ -7,6 +7,7 @@ import { GameSummaryMessage } from './core/embed_structure.js';
 import * as Gamedle from './games/gamedle.js';
 import * as NYT from './games/new_york_times.js';
 import * as NRK from './games/nrk.js';
+import * as Globle from './games/globle.js';
 import { GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
 
@@ -36,6 +37,14 @@ const response_message = new GameSummaryMessage({
       fields: [
         { game: NRK.Tvers, inline: true },
         { game: NRK.Former, inline: true },
+      ]
+    },
+    {
+      title: 'Globle',
+      description: Globle.Description,
+      fields: [
+        { game: Globle.Globle, inline: true },
+        { game: Globle.GlobleCapitals, inline: true },
       ]
     },
     {
