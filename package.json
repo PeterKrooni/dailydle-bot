@@ -1,6 +1,6 @@
 {
   "name": "dailydle-bot",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A discord bot to keep track of daily games.\r Written in javascript with node, with mongoDB as the database.",
   "main": "src/app.ts",
   "type": "module",
