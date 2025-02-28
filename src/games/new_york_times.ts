@@ -38,7 +38,10 @@ export const Connections = new GameBuilder('Connections')
   )
   .set_responder(
     (entry) =>
-      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) < 4 ? 'did' : 'failed'} Connections ${entry.day_id} ${Number(entry.score) < 4 ? 'with' : 'after'} ${entry.score == '0' ? 'no' : entry.score} mistakes`,
+      `${entry.user.server_name ?? entry.user.name} 
+    ${Number(entry.score) < 4 ? 'did' : 'failed'} Connections ${entry.day_id} 
+    ${Number(entry.score) < 4 ? 'with' : 'after'} 
+    ${entry.score == '0' ? 'no' : entry.score} mistakes`,
   )
   .build();
 
@@ -75,7 +78,7 @@ export const TheMini = new GameBuilder('The Mini')
       `${entry.user.server_name ?? entry.user.name} did The Mini in ${seconds_to_display_time(entry.score)}`,
   )
   .set_embed_field_score_formatter(
-    (user_link, score) => `${user_link} : ${seconds_to_display_time(score)}`,
+    (user_link: any, score: any) => `${user_link} : ${seconds_to_display_time(score)}`,
   )
   .build();
 
@@ -99,7 +102,7 @@ export const Strands = new GameBuilder('Strands')
     return `${entry.user.server_name ?? entry.user.name} did Strands ${entry.day_id} with ${hints} hints`;
   })
   .set_embed_field_score_formatter(
-    (user_link, score) =>
+    (user_link: any, score: any) =>
       `${user_link} : ${score.split(',').slice(1).join('/')}`,
   )
   .build();

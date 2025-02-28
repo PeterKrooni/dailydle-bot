@@ -11,7 +11,7 @@ import {
 } from 'discord.js';
 import Config from './config.js';
 import { SlashCommand } from './core/command.js';
-import { GameSummaryMessage } from './core/embed_structure.js';
+import { GameSummaryMessage } from './core/embeds/embed_structure.js';
 import Game from './core/game.js';
 
 /**
@@ -48,7 +48,7 @@ function message_reaction_is_valid(
   message_reaction: MessageReaction | PartialMessageReaction,
   user: User | PartialUser,
 ): boolean {
-  const last_message = message_reaction.message.channel.lastMessage;
+  const last_message = message_reaction.message.channel.messages?.cache?.last();
 
   // Reaction is in enabled channel
   const channel_is_enabled = Config.ENABLED_CHANNEL_IDS.includes(

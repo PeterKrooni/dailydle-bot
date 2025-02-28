@@ -16,7 +16,7 @@ export const Tvers = new GameBuilder('Tvers')
     return `${entry.user.server_name ?? entry.user.name} did Tvers ${entry.day_id} with score ${entry.score}.`;
   })
   .set_embed_field_score_formatter(
-    (user_link, score) => 
+    (user_link: any, score: any) => 
       `${user_link} : ${score}`,
   )
   .build();
@@ -37,7 +37,7 @@ export const Former = new GameBuilder('Former')
     return `${entry.user.server_name ?? entry.user.name} did Former ${entry.day_id} in ${entry.score} moves.`;
   })
   .set_embed_field_score_formatter(
-    (user_link, score) => 
+    (user_link: any, score: any) => 
       `${user_link} : ${score}`,
   )
   .build();

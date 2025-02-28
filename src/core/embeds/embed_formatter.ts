@@ -1,6 +1,6 @@
 import { EmbedField } from 'discord.js';
-import { GameEntry, GameEntryModel } from './database/schema.js';
-import { get_today } from '../util.js';
+import { GameEntry, GameEntryModel } from '../database/schema.js';
+import { get_today } from '../../util.js';
 
 /**
  * A function that sorts game entries.
@@ -100,7 +100,12 @@ export class EmbedFieldFormatter {
     }
 
     let value = entries
-      .map((e) => EmbedFieldFormatter.format_entry(e, this.score_formatter))
+      .map((e) => {
+        const message_url = `https://discord.com/channels/${e.server_id}/${e.channel_id}/${e.message_id}`;
+        const user = `[${e.user.server_name ?? e.user.name}](${message_url})`;
+    
+        return this.score_formatter(user, e.score)
+      })
       .join('\n');
 
     // Add remainder if applicable
@@ -113,21 +118,5 @@ export class EmbedFieldFormatter {
       value: value,
       inline: inline,
     };
-  }
-
-  /**
-   * Formats an entry.
-   *
-   * @param {GameEntry} entry - The entry to format.
-   * @returns {string} The formatted entry.
-   */
-  private static format_entry(
-    entry: GameEntry,
-    score_formatter: ScoreFormatter,
-  ): string {
-    const message_url = `https://discord.com/channels/${entry.server_id}/${entry.channel_id}/${entry.message_id}`;
-    const user = `[${entry.user.server_name ?? entry.user.name}](${message_url})`;
-
-    return score_formatter(user, entry.score);
   }
 }

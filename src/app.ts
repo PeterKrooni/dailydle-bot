@@ -3,7 +3,7 @@ import { init_client } from './client.js';
 import Config from './config.js';
 import CommandBuilder from './core/builders/command_builder.js';
 import { init_database } from './core/database/util.js';
-import { GameSummaryMessage } from './core/embed_structure.js';
+import { GameSummaryMessage } from './core/embeds/embed_structure.js';
 import * as Gamedle from './games/gamedle.js';
 import * as NYT from './games/new_york_times.js';
 import * as NRK from './games/nrk.js';
@@ -73,6 +73,12 @@ const commands = [
       } else {
         await interaction.reply(`Backup failed: you are not on the server side whitelist for running backups.`);
       }
+    })
+    .build(),
+  new CommandBuilder('weekly')
+    .set_description('Posts a weekly summary of your scores.')
+    .set_handler(async (interaction) => {
+      await interaction.reply('TODO.')
     })
     .build(),
 ];

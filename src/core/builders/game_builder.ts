@@ -2,7 +2,7 @@ import {
   EmbedFieldFormatter,
   ScoreFormatter,
   ScoreSorter,
-} from '../embed_formatter.js';
+} from '../embeds/embed_formatter.js';
 import { Game, Responder } from '../game.js';
 import { MatchParser, MatchType, MessageParser } from '../message_parser.js';
 

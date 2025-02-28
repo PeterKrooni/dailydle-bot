@@ -4,48 +4,25 @@ import {
   EmbedBuilder,
   MessageReaction,
   PartialMessageReaction,
+  TextChannel,
 } from 'discord.js';
-import Game from './game.js';
+import Game from '../game.js';
+import { EmbedMessage } from './embed_types.js';
 
-/**
- * An embed field in a Discord message.
- */
-interface FieldStruct {
-  game: Game;
-  inline: boolean;
-}
-
-/**
- * An embed in a Discord message.
- */
-interface EmbedStruct {
-  title: string;
-  description: string;
-  fields: FieldStruct[];
-  footer?: string;
-}
-
-/**
- * Represents a basic Discord message with content and embeds.
- */
-interface MessageStruct {
-  content: string | (() => string);
-  embeds: EmbedStruct[];
-}
 
 /**
  * Represents a Discord message containing a summary of all game entries today.
  */
 export class GameSummaryMessage {
-  private structure: MessageStruct;
+  private message: EmbedMessage;
 
   /**
-   * Initializes a game summary message with the given structure.
+   * Initializes a game summary message with the given message.
    *
-   * @param {MessageStruct} structure The structure of the message.
+   * @param {EmbedMessage} message The message.
    */
-  constructor(structure: MessageStruct) {
-    this.structure = structure;
+  constructor(message: EmbedMessage) {
+    this.message = message;
   }
 
   /**
@@ -57,13 +34,12 @@ export class GameSummaryMessage {
     const message = message_reaction.message;
     const payload = {
       content:
-        typeof this.structure.content === 'string'
-          ? this.structure.content
-          : this.structure.content(),
+        typeof this.message.content === 'string'
+          ? this.message.content
+          : this.message.content(),
       embeds: await this.get_embeds(),
     };
-
-    await message.channel
+    await (message.channel as TextChannel)
       .send(payload)
       .then(() =>
         console.log(
@@ -79,7 +55,7 @@ export class GameSummaryMessage {
    * @returns {Game[]} The games in the message.
    */
   get_games(): Game[] {
-    return this.structure.embeds.flatMap((embed) =>
+    return this.message.embeds.flatMap((embed) =>
       embed.fields.map((field) => field.game),
     );
   }
@@ -87,7 +63,7 @@ export class GameSummaryMessage {
   private async get_embeds(): Promise<APIEmbed[]> {
     const embeds: APIEmbed[] = [];
 
-    for (const embed_structure of this.structure.embeds) {
+    for (const embed_structure of this.message.embeds) {
       const fields: APIEmbedField[] = [];
 
       for (const field_structure of embed_structure.fields) {

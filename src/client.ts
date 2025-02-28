@@ -6,7 +6,7 @@ import {
   REST,
   Routes,
 } from 'discord.js';
-import { GameSummaryMessage } from './core/embed_structure.js';
+import { GameSummaryMessage } from './core/embeds/embed_structure.js';
 import Config from './config.js';
 import { SlashCommand } from './core/command.js';
 import {
