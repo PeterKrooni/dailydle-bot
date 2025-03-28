@@ -13,3 +13,11 @@ export function get_today(): Date {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
+
+export function get_one_week_ago(): Date {
+  const now = new Date();
+  const days = (now.getDay() + 7 - 1) % 7;
+  now.setDate(now.getDate() - days);
+  now.setHours(0, 0, 0, 0);
+  return now;
+}
