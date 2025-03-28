@@ -10,6 +10,7 @@ import * as NRK from './games/nrk.js';
 import * as Globle from './games/globle.js';
 import { GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
+import { generate_weekly_chart } from './charts/weekly_chart.js';
 
 // #region Constants
 
@@ -78,7 +79,8 @@ const commands = [
   new CommandBuilder('weekly')
     .set_description('Posts a weekly summary of your scores.')
     .set_handler(async (interaction) => {
-      await interaction.reply('TODO.')
+      await generate_weekly_chart(interaction.user.id)
+      await interaction.reply({files: [{attachment: './generated_chart.png'}]})
     })
     .build(),
 ];
