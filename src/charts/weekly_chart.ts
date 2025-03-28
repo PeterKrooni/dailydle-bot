@@ -28,6 +28,7 @@ var options = {
   svgStyles: styles,
 }
 
+// Should use profile pic average pixel color here? Need to have names somewhere anwayys
 const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00"];
 
 export async function generate_weekly_chart(userid: any) {
@@ -36,7 +37,7 @@ export async function generate_weekly_chart(userid: any) {
 
   const margin = { top: 20, right: 30, bottom: 30, left: 40 };
   const width = 960 - margin.left - margin.right;
-  const height = 500 - margin.top - margin.bottom;
+  const height = 600 - margin.top - margin.bottom;
 
   // Example data: Scores of 5 people over 7 days
   const data = [
@@ -48,6 +49,8 @@ export async function generate_weekly_chart(userid: any) {
     { day: "Sat", scores: [15, 14, 9, 10, 12] },
     { day: "Sun", scores: [11, 12, 10, 8, 15] }
   ];
+  // Example names for individuals
+  const names = ["User1", "User2", "User3", "User4", "User5"];
 
   const peopleCount = data[0].scores.length; // 5 people
 
@@ -122,6 +125,28 @@ export async function generate_weekly_chart(userid: any) {
   svg.selectAll(".domain, .tick line") // Make Y axis lines white
     .style("stroke", "white");
 
+
+  // Legend (color to person thingy)
+  const legend = svg.append("g")
+  .attr("transform", `translate(0, 0)`); // Position legend outside the chart
+
+  names.forEach((name, i) => {
+    legend.append("rect")
+      .attr("x", 30 + (i * 100))
+      .attr("y", 5) // More spacing between rows
+      .attr("width", 20)
+      .attr("height", 20)
+      .attr("fill", colors[i]);
+  
+    legend.append("text")
+      .attr("x", 55 + (i*100)) // Move text further from box
+      .attr("y", 20) // Center vertically with box
+      .attr("fill", "white")
+      .style("font-size", "18px") // Increase font size
+      .style("font-weight", "bold") // Make text bold
+      .text(name);
+  });
+  
   // Convert the SVG to a string
   const svgString = d3n.svgString();
 
