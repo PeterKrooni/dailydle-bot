@@ -1,6 +1,9 @@
 import { D3Node } from 'd3-node';
 import sharp from 'sharp';
 
+const fontSize = 24;
+const fontFamily = "monospace"
+
 const styles = `
 .bar rect {
   stroke-width: 1;
@@ -9,7 +12,7 @@ const styles = `
 
 .bar text {
   fill: #fff;
-  font: 18px verdana; /* Increased font size */
+  font: 18px ${fontFamily}; /* Increased font size */
   font-weight: bold;
 }
 
@@ -21,33 +24,35 @@ const styles = `
 
 .axis text {
   fill: white;
-  font-size: 16px; /* Make axis numbers more readable */
+  font-size: ${fontSize}px; /* Make axis numbers more readable */
+  font-family: ${fontFamily}
 }`;
 
 var options = {
   svgStyles: styles,
 }
 
-// Should use profile pic average pixel color here? Need to have names somewhere anwayys
-const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00"];
 
 export async function generate_weekly_chart(userid: any) {
   const d3n = new D3Node(options); // Initialize D3Node
   const d3 = d3n.d3; // Access the D3.js library
 
   const margin = { top: 20, right: 30, bottom: 30, left: 40 };
-  const width = 960 - margin.left - margin.right;
-  const height = 600 - margin.top - margin.bottom;
+  const width = 1460 - margin.left - margin.right;
+  const height = 1000 - margin.top - margin.bottom;
+
+  // Should use profile pic average pixel color here? Need to have names somewhere anwayys
+  const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00"];
 
   // Example data: Scores of 5 people over 7 days
   const data = [
-    { day: "Mon", scores: [8, 12, 15, 10, 9] },
-    { day: "Tue", scores: [14, 9, 11, 13, 12] },
-    { day: "Wed", scores: [10, 15, 14, 9, 8] },
-    { day: "Thu", scores: [12, 11, 13, 15, 14] },
-    { day: "Fri", scores: [9, 8, 12, 14, 10] },
-    { day: "Sat", scores: [15, 14, 9, 10, 12] },
-    { day: "Sun", scores: [11, 12, 10, 8, 15] }
+    { day: "Mandag", scores: [8, 12, 15, 10, 9] },
+    { day: "Tirsdag", scores: [14, 9, 11, 13, 12] },
+    { day: "Onsdag", scores: [10, 15, 14, 9, 8] },
+    { day: "Torsdag", scores: [12, 11, 13, 15, 14] },
+    { day: "Fredag", scores: [9, 8, 12, 14, 10] },
+    { day: "Lørdag", scores: [15, 14, 9, 10, 12] },
+    { day: "Søndag", scores: [11, 12, 10, 8, 15] }
   ];
   // Example names for individuals
   const names = ["User1", "User2_longname", "User3", "U4", "User5"];
@@ -97,8 +102,9 @@ export async function generate_weekly_chart(userid: any) {
         .attr("y", y(score) - 5)
         .attr("text-anchor", "middle")
         .attr("fill", "#fff")
-        .style("font-size", "18px") // Bigger text for scores
+        .style("font-size", `${fontSize}px`) // Bigger text for scores
         .style("font-weight", "bold")
+        .style("font-family", fontFamily)
         .text(score);
     });
   });
@@ -109,7 +115,8 @@ export async function generate_weekly_chart(userid: any) {
     .call(d3.axisBottom(x0))
     .selectAll("text")
     .style("fill", "white") // Make X labels white
-    .style("font-size", "16px"); // Bigger text
+    .style("font-size", `${fontSize}px`) // Bigger text
+    .style("font-family", fontFamily);
 
   // Make X axis lines white
     svg.selectAll(".domain, .tick line")
@@ -120,7 +127,8 @@ export async function generate_weekly_chart(userid: any) {
     .call(d3.axisLeft(y))
     .selectAll("text")
     .style("fill", "white") // Make Y labels white
-    .style("font-size", "16px"); // Bigger text
+    .style("font-size", `${fontSize}px`) // Bigger text
+    .style("font-family", fontFamily);
 
   svg.selectAll(".domain, .tick line") // Make Y axis lines white
     .style("stroke", "white");
@@ -133,6 +141,7 @@ export async function generate_weekly_chart(userid: any) {
   let cx = 20
   names.forEach((name, i) => {
     legend.append("rect")
+      .attr("rx", 30)
       .attr("x", cx)
       .attr("y", 5) // More spacing between rows
       .attr("width", 20)
@@ -141,13 +150,15 @@ export async function generate_weekly_chart(userid: any) {
   
     legend.append("text")
       .attr("x", cx+25) // Move text further from box
-      .attr("y", 20) // Center vertically with box
+      .attr("y", 25) // Center vertically with box
       .attr("fill", "white")
-      .style("font-size", "18px") // Increase font size
-      .style("font-weight", "bold") // Make text bold
+      .style("font-size", `${fontSize}px`) // Increase font size
+      .style("font-weight", "650") // Make text bold
+      .style("letter-spacing", "1px")
+      .style("font-family", fontFamily)
       .text(name);
 
-    cx += 55 + (name.length)*8.5
+    cx += 65 + (name.length)*14
   });
   
   // Convert the SVG to a string
