@@ -101,7 +101,6 @@ export async function generate_weekly_chart(gamemode: any) {
     }
   })
 
-  data = data.reverse()
   console.log(names)
   console.log(data)
 
