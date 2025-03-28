@@ -1,7 +1,8 @@
 import { D3Node } from 'd3-node';
 import sharp from 'sharp';
+import { GameEntry, GameEntryModel } from '../core/database/schema.js';
 
-const fontSize = 24;
+const fontSize = 30;
 const fontFamily = "monospace"
 
 const styles = `
@@ -32,8 +33,22 @@ var options = {
   svgStyles: styles,
 }
 
+import { get_one_week_ago } from '../util.js';
 
-export async function generate_weekly_chart(userid: any) {
+const formatDayId = (f: string) => {
+  return Number.parseInt(f.replace(/\s/g, '').replace(',',''))
+}
+
+export async function generate_weekly_chart(gamemode: any) {
+
+  const filter = {
+    createdAt: { $gte: get_one_week_ago() },
+    game: gamemode,
+  };
+
+  const gameEntries = await GameEntryModel.find(filter);
+  
+
   const d3n = new D3Node(options); // Initialize D3Node
   const d3 = d3n.d3; // Access the D3.js library
 
@@ -41,23 +56,56 @@ export async function generate_weekly_chart(userid: any) {
   const width = 1460 - margin.left - margin.right;
   const height = 1000 - margin.top - margin.bottom;
 
-  // Should use profile pic average pixel color here? Need to have names somewhere anwayys
-  const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00"];
+  // TODO these need to be randomly generated or selected based on users profile picture or something, cus this is theoretically infinite
+  const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#0f0f0f", "#afafaf", "#c8c8c8"];
 
-  // Example data: Scores of 5 people over 7 days
-  const data = [
-    { day: "Mandag", scores: [8, 12, 15, 10, 9] },
-    { day: "Tirsdag", scores: [14, 9, 11, 13, 12] },
-    { day: "Onsdag", scores: [10, 15, 14, 9, 8] },
-    { day: "Torsdag", scores: [12, 11, 13, 15, 14] },
-    { day: "Fredag", scores: [9, 8, 12, 14, 10] },
-    { day: "Lørdag", scores: [15, 14, 9, 10, 12] },
-    { day: "Søndag", scores: [11, 12, 10, 8, 15] }
-  ];
-  // Example names for individuals
-  const names = ["User1", "User2_longname", "User3", "U4", "User5"];
+  const users = new Set(gameEntries.map(m => m.user))
+  let userids: string[] = []
+  const names: string[] = []
+  users.forEach(u => {
+    if (!userids.includes(u.id)) {
+      userids.push(u.id)
+      names.push(u.server_name ?? u.name)
+    }
+  })
 
-  const peopleCount = data[0].scores.length; // 5 people
+  /**
+   * Outputs newData like this:
+   * [
+      { day: 1377, scores: [ '4/6', '4/6', '4/6', '6/6' ] },
+      { day: 1376, scores: [ 'X/6', '3/6', '3/6', '3/6' ] },
+      { day: 1375, scores: [ '-', '5/6', '5/6', '5/6' ] },
+      { day: 1374, scores: [ '4/6', '4/6', '-', '3/6' ] }
+    ]
+   */
+  let visitedDayIds: number[] = []
+  let data: any = []
+  gameEntries.forEach((gameEntry: GameEntry) => {
+    let did = formatDayId(gameEntry.day_id)
+    if (!visitedDayIds.includes(did)) {
+      let sc: string[] = []
+      userids.forEach(uid => {
+        let userScoreFound = false
+        gameEntries.forEach(ge => {
+            if (ge.user.id === uid && did == formatDayId(ge.day_id)) {
+              userScoreFound = true
+              sc.push(ge.score.split("/")[0].replace("X", "7"))
+            }
+        })
+        if (!userScoreFound) {
+          sc.push("0")
+        }
+      })
+      visitedDayIds.push(did);
+      data.push( {day: did, scores: sc})
+    }
+  })
+
+  data = data.reverse()
+  console.log(names)
+  console.log(data)
+
+  const peopleCount = data[0].scores.length;
 
   // X scale: Categorical days of the week
   const x0 = d3.scaleBand()
@@ -73,7 +121,7 @@ export async function generate_weekly_chart(userid: any) {
 
   // Y scale
   const y = d3.scaleLinear()
-    .domain([0, 20]) // Assume max score is 20
+    .domain([0, 9]) // Assume max score is 9 (even though it is 7)
     .range([height, 0]);
 
   const svgWidth = width + margin.left + margin.right;
@@ -92,7 +140,8 @@ export async function generate_weekly_chart(userid: any) {
       group.append("rect")
         .attr("x", x1(String(personIndex)))
         .attr("y", y(score))
-        .attr("width", x1.bandwidth())
+        .attr("width", x1.bandwidth()*0.95)
+        .attr("rx", "5")
         .attr("height", height - y(score))
         .attr("fill", colors[personIndex]); // Assign color per person
 
@@ -158,7 +207,7 @@ export async function generate_weekly_chart(userid: any) {
       .style("font-family", fontFamily)
       .text(name);
 
-    cx += 65 + (name.length)*14
+    cx += 85 + (name.length)*14
   });
   
   // Convert the SVG to a string

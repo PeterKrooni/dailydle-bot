@@ -77,9 +77,9 @@ const commands = [
     })
     .build(),
   new CommandBuilder('weekly')
-    .set_description('Posts a weekly summary of your scores.')
+    .set_description('Posts a weekly summary scores for a specific gammode (only Wordle currently).')
     .set_handler(async (interaction) => {
-      await generate_weekly_chart(interaction.user.id)
+      await generate_weekly_chart("Wordle")
       await interaction.reply({files: [{attachment: './generated_chart.png'}]})
     })
     .build(),
