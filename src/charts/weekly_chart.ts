@@ -50,7 +50,7 @@ export async function generate_weekly_chart(userid: any) {
     { day: "Sun", scores: [11, 12, 10, 8, 15] }
   ];
   // Example names for individuals
-  const names = ["User1", "User2", "User3", "User4", "User5"];
+  const names = ["User1", "User2_longname", "User3", "U4", "User5"];
 
   const peopleCount = data[0].scores.length; // 5 people
 
@@ -130,21 +130,24 @@ export async function generate_weekly_chart(userid: any) {
   const legend = svg.append("g")
   .attr("transform", `translate(0, 0)`); // Position legend outside the chart
 
+  let cx = 20
   names.forEach((name, i) => {
     legend.append("rect")
-      .attr("x", 30 + (i * 100))
+      .attr("x", cx)
       .attr("y", 5) // More spacing between rows
       .attr("width", 20)
       .attr("height", 20)
       .attr("fill", colors[i]);
   
     legend.append("text")
-      .attr("x", 55 + (i*100)) // Move text further from box
+      .attr("x", cx+25) // Move text further from box
       .attr("y", 20) // Center vertically with box
       .attr("fill", "white")
       .style("font-size", "18px") // Increase font size
       .style("font-weight", "bold") // Make text bold
       .text(name);
+
+    cx += 55 + (name.length)*8.5
   });
   
   // Convert the SVG to a string
