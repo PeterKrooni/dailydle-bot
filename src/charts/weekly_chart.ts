@@ -33,6 +33,17 @@ var options = {
   svgStyles: styles,
 }
 
+const color_schemes = [
+  ["#605B56", "#837A75", "#ACC18A", "#DAFEB7", "#F2FBE0"],
+  ["#493657", "#CE7DA5", "#BEE5BF", "#DFF3E3", "#FFD1BA"],
+  ["#ca054d","#3b1c32","#a4d4b4","#ffcf9c","#b96d40"],
+  ["#ee6352","#08b2e3","#efe9f4","#57a773","#484d6d"],
+  ["#420039","#932f6d","#e07be0","#dcccff","#f6f2ff"],
+  ["#31393c","#2176ff","#33a1fd","#fdca40","#f79824"],
+  ["#a63446","#fbfef9","#0c6291","#000004","#7e1946"],
+  ["#f6f7eb","#e94f37","#393e41","#3f88c5","#44bba4"]
+]
+
 import { get_one_week_ago } from '../util.js';
 
 const formatDayId = (f: string) => {
@@ -56,8 +67,7 @@ export async function generate_weekly_chart(gamemode: any) {
   const width = 1460 - margin.left - margin.right;
   const height = 1000 - margin.top - margin.bottom;
 
-  // TODO these need to be randomly generated or selected based on users profile picture or something, cus this is theoretically infinite
-  const colors = ["#e41a1c", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#0f0f0f", "#afafaf", "#c8c8c8"];
+  const colors = color_schemes[Math.floor(Math.random() * color_schemes.length)]
 
   const users = new Set(gameEntries.map(m => m.user))
   let userids: string[] = []
@@ -208,14 +218,20 @@ export async function generate_weekly_chart(gamemode: any) {
 
     cx += 85 + (name.length)*14
   });
-  
+
   // Convert the SVG to a string
   const svgString = d3n.svgString();
 
   // Convert the SVG to PNG using sharp
-  const pngBuffer = await sharp(Buffer.from(svgString))
+  await sharp(Buffer.from(svgString))
     .png()
+    .toFile('temp_chart.png');
+    
+  const finalImage = await sharp('temp_chart.png')
+    .composite([
+      { input: 'wordle_logo.png', top: 10, left: 1070 } // Adjust position
+    ])
     .toFile('generated_chart.png');
 
-  return pngBuffer;
+  return finalImage;
 }
