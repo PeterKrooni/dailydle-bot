@@ -67,7 +67,7 @@ export async function generate_weekly_chart(gamemode: any) {
   const width = 1460 - margin.left - margin.right;
   const height = 1000 - margin.top - margin.bottom;
 
-  const colors = color_schemes[Math.floor(Math.random() * color_schemes.length)]
+  const colors = color_schemes[0]//color_schemes[Math.floor(Math.random() * color_schemes.length)]
 
   const users = new Set(gameEntries.map(m => m.user))
   let userids: string[] = []
@@ -130,7 +130,7 @@ export async function generate_weekly_chart(gamemode: any) {
 
   // Y scale
   const y = d3.scaleLinear()
-    .domain([0, 9]) // Assume max score is 9 (even though it is 7)
+    .domain([0, 7]) // Assume max score is 7
     .range([height, 0]);
 
   const svgWidth = width + margin.left + margin.right;
@@ -140,30 +140,56 @@ export async function generate_weekly_chart(gamemode: any) {
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
+  // this is stupid
+  const scoreInvert = ["0","6","5","4","3","2","1", "X"]
+
   // Create bars
   data.forEach((d, dayIndex) => {
     const group = svg.append("g")
       .attr("transform", `translate(${x0(d.day)},0)`);
 
-    d.scores.forEach((score, personIndex) => {
+    d.scores.forEach((score: string, personIndex: number) => {
+      let scorePos = scoreInvert[Number.parseInt(score)];
+      const ylvl = score !== "7" ? y(scorePos) : height-40;
       group.append("rect")
         .attr("x", x1(String(personIndex)))
-        .attr("y", y(score))
+        .attr("y", ylvl)
         .attr("width", x1.bandwidth()*0.95)
         .attr("rx", "5")
-        .attr("height", height - y(score))
+        .attr("height", height - ylvl)
         .attr("fill", colors[personIndex]); // Assign color per person
 
       // Make Score Labels Bigger
       group.append("text")
         .attr("x", x1(String(personIndex)) + x1.bandwidth() / 2)
-        .attr("y", y(score) - 5)
+        .attr("y", ylvl - 5)
         .attr("text-anchor", "middle")
         .attr("fill", "#fff")
         .style("font-size", `${fontSize}px`) // Bigger text for scores
         .style("font-weight", "bold")
         .style("font-family", fontFamily)
-        .text(score);
+        .text(score.replace("7", "X"));
+
+        const barX = x1(String(personIndex));
+        const barY = ylvl;
+        const barWidth = x1.bandwidth() * 0.95;
+        const barHeight = height - ylvl;
+
+      // If the score is "X", add diagonal black lines
+      if (score === "7") {
+        const lineGroup = group.append("g")
+          .attr("stroke", "black")
+          .attr("stroke-width", 1.5);
+
+        for (let i = 0; i <= barHeight-10; i += 27) {
+          // Diagonal from top-left to bottom-right
+          lineGroup.append("line")
+          .attr("x1", barX)
+          .attr("y1", barY + i)
+          .attr("x2", barX + barWidth)
+          .attr("y2", barY + i + 27);
+        }
+      }
     });
   });
 
