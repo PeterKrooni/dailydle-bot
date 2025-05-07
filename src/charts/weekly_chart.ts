@@ -79,6 +79,8 @@ export async function generate_weekly_chart(gamemode: any) {
     }
   })
 
+  // TODO: add overlaying line chart to the user that sent the command's score, or maybe the highest scoring user? an argument to the command maybe
+
   /**
    * Outputs newData like this:
    * [

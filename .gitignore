@@ -136,3 +136,6 @@ dist
 
 generated_chart.png
 temp_chart.png
+
+src/test/data.json
+src/test/output.json
