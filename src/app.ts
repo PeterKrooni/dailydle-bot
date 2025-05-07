@@ -11,6 +11,7 @@ import * as Globle from './games/globle.js';
 import { GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
 import { generate_weekly_chart } from './charts/weekly_chart.js';
+import { generate_mock_data } from './test/generate_mock_data.js';
 
 // #region Constants
 
@@ -18,6 +19,11 @@ const response_message_content = () =>
   `**Dailydle** - ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}
   
 Share your dailydle scores in this channel to register your entry`;
+
+const enable_dev_features = process.argv.includes('--dev')
+if (enable_dev_features) {
+  console.info('\x1b[36m%s\x1b[0m', 'Found --dev argument in startup args, development features will be enabled')
+} 
 
 const response_message = new GameSummaryMessage({
   content: response_message_content,
@@ -61,7 +67,7 @@ const response_message = new GameSummaryMessage({
   ],
 });
 
-const commands = [
+const bot_commands = [
   new CommandBuilder('backup')
     .set_description('Save a raw backup of the database in <APP_ROOT>/dump-<CURRENT_DATE_AS_ISO>.json')
     .set_handler(async (interaction) => {
@@ -85,6 +91,17 @@ const commands = [
     .build(),
 ];
 
+const dev_commands = [
+  new CommandBuilder('mock')
+    .set_description('Generate test data.')
+    .set_handler(async (interaction) => {
+      await generate_mock_data()
+      .then((res) => interaction.reply(res))
+      .catch((err) => interaction.reply(`Failed to created mock data. Error: ${err}`))
+    })
+    .build(),
+]
+
 // #endregion
 
 Config.load_config();
@@ -95,5 +112,5 @@ await init_client(
   Config.DISCORD_BOT_TOKEN,
   response_message,
   Config.DISCORD_APPLICATION_ID,
-  commands,
+  enable_dev_features ? bot_commands.concat(dev_commands) : bot_commands,
 );
