@@ -8,7 +8,7 @@ import * as Gamedle from './games/gamedle.js';
 import * as NYT from './games/new_york_times.js';
 import * as NRK from './games/nrk.js';
 import * as Globle from './games/globle.js';
-import { GameEntryModel } from './core/database/schema.js';
+import { GameEntry, GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
 import { generate_weekly_chart } from './charts/weekly_chart.js';
 import { generate_mock_data } from './test/generate_mock_data.js';
@@ -22,7 +22,7 @@ Share your dailydle scores in this channel to register your entry`;
 
 const enable_dev_features = process.argv.includes('--dev')
 if (enable_dev_features) {
-  console.info('\x1b[36m%s\x1b[0m', 'Found --dev argument in startup args, development features will be enabled')
+  console.info('\x1b[36m%s\x1b[0m', '--dev: Development features will be enabled')
 } 
 
 const response_message = new GameSummaryMessage({
@@ -98,6 +98,13 @@ const dev_commands = [
       await generate_mock_data()
       .then((res) => interaction.reply(res))
       .catch((err) => interaction.reply(`Failed to created mock data. Error: ${err}`))
+
+      // dev: insert mock data directly into db, since it uses an in memory database for dev and it gets wiped on every rerun
+      if (enable_dev_features) {
+        const fileContent = fs.readFileSync(`./src/test/output.json`, 'utf-8');
+        const mockEntries = JSON.parse(fileContent) as GameEntry[];
+        await GameEntryModel.insertMany(mockEntries)
+      }
     })
     .build(),
 ]

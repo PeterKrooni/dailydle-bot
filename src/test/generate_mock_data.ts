@@ -1,27 +1,30 @@
-import { readFileSync, writeFileSync } from 'fs'
-import { GameEntry } from '../core/database/schema.js';
 import { Snowflake } from 'discord.js';
+import { writeFileSync } from 'fs';
+import { GameEntryModel, GameEntry } from '../core/database/schema.js';
+import crypto from 'node:crypto'; // Add this import at the top
 
 interface DbEntry extends GameEntry {
-    updatedAt: any,
-    createdAt: any,
-} 
+    createdAt?: Date;
+    updatedAt?: Date;
+}
 
 export async function generate_mock_data() {
-    const f: DbEntry[] = JSON.parse(readFileSync(new URL('./data.json', import.meta.url), 'utf-8'));
-
-    // Getting the first 5 users
-    const users: any[] = [];
-    const found_ids: Snowflake[] = [];
-
-    f.forEach(entry => {
-        if (!found_ids.includes(entry.user.id)) {
-            found_ids.push(entry.user.id);
-            if (users.length < 5) {
-                users.push(entry.user);
-            }
-        }
+    // First, let's analyze existing data patterns
+    const existingEntries = await GameEntryModel.find({}).exec();
+    
+    // Get active users from the last month
+    const activeUsers = await GameEntryModel.distinct('user', {
+        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
     });
+    
+    // Take 5 random active users or create mock users if none exist
+    const selectedUsers = activeUsers.length > 0 
+        ? activeUsers.sort(() => 0.5 - Math.random()).slice(0, 5)
+        : Array.from({ length: 5 }, (_, i) => ({
+            id: crypto.randomUUID() as Snowflake,
+            name: `TestUser${i + 1}`,
+            server_name: `ServerNickname${i + 1}`
+        }));
 
     const games = [
         "Wordle",
@@ -32,101 +35,142 @@ export async function generate_mock_data() {
         "GlobleCapitals"
     ] as const;
 
-    type Game = typeof games[number];
-
-    const scores: Record<Game, string[]> = {
-        "Wordle": ["X/6", "1/6", "2/6", "3/6", "4/6", "5/6"],
-        "Connections": ["0", "1", "2", "3", "4"],
-        "The Mini": ["10", "15", "25", "35", "48", "68", "72", "91", "113", "121", "144", "159", "231", "241", "251"],
-        "Strands": ["0,7,7", "1,6,7", "2,6,8", "0,8,8", "3,3,6", "4,3,7"], // strands scores arent really synced between days, so this might look a bit weird
-        "Globle": ["4", "5", "8", "10", "13", "15", "19", "22"],
-        "GlobleCapitals": ["6", "7", "9", "11", "16", "17", "23", "27"]
-    };
-
-    // Track day_ids separately for each game
-    const gameDayCounts: Record<Game, number> = {
-        "Wordle": 1351, // Start from 1351 for Wordle
-        "Connections": 629, // Start from 629 for Connections
-        "The Mini": 2025, // Start from 2025 for The Mini
-        "Strands": 363, // Start from 363 for Strands
-        "Globle": 1351, // Start from 1351 for Globle
-        "GlobleCapitals": 629 // Start from 629 for GlobleCapitals
-    };
-
     const entries: DbEntry[] = [];
+    const today = new Date();
 
-    users.forEach(user => {
-        games.forEach(g => {
-            for (let i = 0; i < 7; i++) {
-                if (Math.random() < 0.1) continue; // 10% chance to skip game
+    // Generate entries for the last 7 days
+    for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+        const currentDate = new Date(today);
+        currentDate.setDate(currentDate.getDate() - dayOffset);
+        
+        for (const user of selectedUsers) {
+            // Generate entries for each game type with a 90% participation rate
+            for (const game of games) {
+                if (Math.random() > 0.9) continue; // 90% participation rate
 
-                const date = new Date();
-                date.setDate(date.getDate() - (7 - i));
-                date.setHours(10, 46, 8, 531); // consistent timestamp
+                const dayId = calculateDayId(game, currentDate);
+                const score = generateScore(game);
+                const content = generateContent(game, dayId, score);
 
-                // Get Unix timestamp in milliseconds
-                const timestamp = date.getTime(); 
-
-                // Increment the day_id for each game
-                const day_id = `${gameDayCounts[g]++}`;
-
-                const scoresForGame = scores[g];
-                const score = scoresForGame[Math.floor(Math.random() * scoresForGame.length)];
-
-                const template = f.find(e => e.game === g);
-
-                if (!template) continue;
-
-                // Game-specific content adjustments
-                let content = '';
-                switch (g) {
-                    case "Wordle":
-                        content = `Wordle ${day_id} ${score}\n\n🟨🟨⬛⬛🟨\n🟩🟨🟨🟨⬛\n🟩🟩⬛🟩🟩\n🟩🟩🟩🟩🟩`;
-                        break;
-                    case "Connections":
-                        content = `Connections\nPuzzle ${day_id}\n🟨🟪🟨🟨\n🟨🟪🟦🟨\n🟨🟪🟩🟨\n🟦🟪🟦🟪`;
-                        break;
-                    case "The Mini":
-                        content = `https://www.nytimes.com/badges/games/mini.html?d=${day_id}&t=152&c=d269e4db734962e54e9f9421f067c763&smid=url-share`;
-                        break;
-                    case "Globle":
-                    case "GlobleCapitals":
-                        content = `🌎 ${day_id} 🌍\n🔥 ${score} | Avg. Guesses: ${Math.floor(Math.random() * 10 + 5)}\n🟥🟩🟦 = ${score}\n\nhttps://globle-game.com\n#globle`;
-                        break;
-                    default:
-                        content = `${g} ${day_id}\n“Let us prey”\n💡🔵🟡🔵\n🔵🔵🔵`;
-                        break;
-                }
-
-
-                // Create a new mocked entry
                 const entry: DbEntry = {
-                    user,
-                    game: g,
-                    day_id,
+                    game,
+                    day_id: dayId.toString(),
                     score,
-                    content,
-                    channel_id: "1335589483705532429", // Placeholder channel_id
-                    message_id: crypto.randomUUID(), // Randomized message ID
-                    schema_version: "2",
-                    server_id: "1313917326013235251", // Placeholder server ID
-                    createdAt: {
-                        "$date": {
-                            "$numberLong": timestamp.toString() // Convert Unix timestamp to string
-                        }
+                    user: {
+                        id: user.id,
+                        name: user.name,
+                        server_name: user.server_name
                     },
-                    updatedAt: {
-                        "$date": {
-                            "$numberLong": timestamp.toString() // Same timestamp for updatedAt
-                        }
-                    }
+                    message_id: crypto.randomUUID() as Snowflake, // This is fine as randomUUID() exists in both Web and Node Crypto
+                    channel_id: existingEntries[0]?.channel_id || "1335589483705532429" as Snowflake,
+                    server_id: existingEntries[0]?.server_id || "1313917326013235251" as Snowflake,
+                    content,
+                    schema_version: "2",
+                    createdAt: currentDate,
+                    updatedAt: currentDate
                 };
 
                 entries.push(entry);
             }
-        });
-    });
+        }
+    }
+    entries.forEach(e => {
+      e.schema_version = "-1"; // version -1 = mock data
+    })
+    writeFileSync('./src/test/output.json', JSON.stringify(entries, null, 2));
+  const enable_dev_features = process.argv.includes('--dev')
+  if (enable_dev_features) {
+    console.info('\x1b[36m%s\x1b[0m', '--dev: Development features will be enabled')
+  }
 
-    await writeFileSync('./src/test/output.json', JSON.stringify(entries))
-    return `Created ${entries.length} mock entries.`
+  return `Created ${entries.length} realistic mock entries. ${enable_dev_features 
+    ? 'Added directly to db since the bot is running in dev mode, and should be running an in-memory database.'
+    : ''}`;
+
+}
+
+function calculateDayId(game: string, date: Date): number {
+    const baseIds: Record<string, number> = {
+        "Wordle": 1351,
+        "Connections": 629,
+        "The Mini": 2025,
+        "Strands": 363,
+        "Globle": 1351,
+        "GlobleCapitals": 629
+    };
+
+    const daysSinceBase = Math.floor((date.getTime() - new Date('2024-01-01').getTime()) / (1000 * 60 * 60 * 24));
+    return (baseIds[game] || 1) + daysSinceBase;
+}
+
+function generateScore(game: string): string {
+    switch (game) {
+        case "Wordle":
+            return `${Math.floor(Math.random() * 6) + 1}/6`;
+        case "Connections":
+            return `${Math.floor(Math.random() * 4)}`;
+        case "The Mini":
+            return `${Math.floor(Math.random() * 200) + 50}`;
+        case "Strands":
+            const attempts = Math.floor(Math.random() * 8);
+            const correct = Math.floor(Math.random() * 8);
+            const total = 8;
+            return `${attempts},${correct},${total}`;
+        case "Globle":
+        case "GlobleCapitals":
+            return `${Math.floor(Math.random() * 20) + 3}`;
+        default:
+            return "0";
+    }
+}
+
+// Then replace the crypto.randomBytes usage in generateContent:
+function generateContent(game: string, dayId: number, score: string): string {
+    switch (game) {
+        case "Wordle":
+            return generateWordleContent(dayId, score);
+        case "Connections":
+            return generateConnectionsContent(dayId, score);
+        case "The Mini":
+            // Fix the crypto.randomBytes usage:
+            return `https://www.nytimes.com/badges/games/mini.html?d=${dayId}&t=${score}&c=${crypto.randomBytes(16).toString('hex')}&smid=url-share`;
+        case "Globle":
+        case "GlobleCapitals":
+            return `🌎 ${dayId} 🌍\n🔥 ${score} | Avg. Guesses: ${Math.floor(Number(score) * 1.5)}\n🟥🟩🟦 = ${score}\n\nhttps://globle-game.com\n#globle`;
+        default:
+            return `${game} ${dayId}\n${score}`;
+    }
+}
+
+function generateWordleContent(dayId: number, score: string): string {
+    const patterns = [
+        "⬛🟨⬛🟩⬛",
+        "🟨🟨⬛⬛🟨",
+        "🟩🟨🟨🟨⬛",
+        "🟩🟩⬛🟩🟩",
+        "🟩🟩🟩🟩🟩"
+    ];
+
+    const attempts = parseInt(score) || 6;
+    const grid = patterns
+        .slice(0, attempts)
+        .join('\n');
+
+    return `Wordle ${dayId} ${score}\n\n${grid}`;
+}
+
+function generateConnectionsContent(dayId: number, score: string): string {
+    const colors = ['🟪', '🟦', '🟨', '🟩'];
+    const attempts = Math.min(Number(score), 4);
+    let content = `Connections\nPuzzle ${dayId}\n`;
+    
+    for (let i = 0; i < attempts; i++) {
+        content += shuffle([...colors]).slice(0, 4).join('') + '\n';
+    }
+    
+    return content;
+}
+
+function shuffle<T>(array: T[]): T[] {
+    return array.sort(() => Math.random() - 0.5);
 }
