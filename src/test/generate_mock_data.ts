@@ -1,7 +1,8 @@
 import { Snowflake } from 'discord.js';
 import { writeFileSync } from 'fs';
 import { GameEntryModel, GameEntry } from '../core/database/schema.js';
-import crypto from 'node:crypto'; // Add this import at the top
+import crypto from 'node:crypto';
+import fs from 'node:fs'; // Add this import at the top
 
 interface DbEntry extends GameEntry {
     createdAt?: Date;
@@ -77,16 +78,15 @@ export async function generate_mock_data() {
     entries.forEach(e => {
       e.schema_version = "-1"; // version -1 = mock data
     })
-    writeFileSync('./src/test/output.json', JSON.stringify(entries, null, 2));
-  const enable_dev_features = process.argv.includes('--dev')
-  if (enable_dev_features) {
-    console.info('\x1b[36m%s\x1b[0m', '--dev: Development features will be enabled')
-  }
 
-  return `Created ${entries.length} realistic mock entries. ${enable_dev_features 
+    const enable_dev_features = process.argv.includes('--dev')
+    if (enable_dev_features) {
+        const mockEntries = entries as GameEntry[];
+        await GameEntryModel.insertMany(mockEntries)
+    }
+    return `Created ${entries.length} realistic mock entries. ${enable_dev_features 
     ? 'Added directly to db since the bot is running in dev mode, and should be running an in-memory database.'
     : ''}`;
-
 }
 
 function calculateDayId(game: string, date: Date): number {

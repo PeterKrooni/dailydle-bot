@@ -22,7 +22,7 @@ Share your dailydle scores in this channel to register your entry`;
 
 const enable_dev_features = process.argv.includes('--dev')
 if (enable_dev_features) {
-  console.info('\x1b[36m%s\x1b[0m', '--dev: Development features will be enabled')
+  console.info('\x1b[36m%s\x1b[0m', 'Development features are enabled (found --dev in application parameters)')
 } 
 
 const response_message = new GameSummaryMessage({
@@ -95,15 +95,14 @@ const dev_commands = [
   new CommandBuilder('mock')
     .set_description('Generate test data.')
     .set_handler(async (interaction) => {
-      await generate_mock_data()
-      .then((res) => interaction.reply(res))
-      .catch((err) => interaction.reply(`Failed to created mock data. Error: ${err}`))
-
+      const enable_dev_features = process.argv.includes('--dev')
       // dev: insert mock data directly into db, since it uses an in memory database for dev and it gets wiped on every rerun
       if (enable_dev_features) {
-        const fileContent = fs.readFileSync(`./src/test/output.json`, 'utf-8');
-        const mockEntries = JSON.parse(fileContent) as GameEntry[];
-        await GameEntryModel.insertMany(mockEntries)
+        await generate_mock_data()
+          .then((res) => interaction.reply(res))
+          .catch((err) => interaction.reply(`Failed to created mock data. Error: ${err}`))
+      } else {
+        await interaction.reply('Error: This command should only be available when running --dev mode.')
       }
     })
     .build(),
@@ -114,6 +113,14 @@ const dev_commands = [
 Config.load_config();
 
 await init_database();
+
+const populate_dev_db_with_mockdata_on_startup = process.argv.includes('--populate-db-with-mock-data')
+
+if (enable_dev_features && populate_dev_db_with_mockdata_on_startup) {
+  await generate_mock_data()
+    .then((res) => console.log(`\x1b[36m%s\x1b[0m`,`--dev: ${res}`))
+    .catch((err) => console.log(`Failed to created mock data. Error: ${err}`))
+}
 
 await init_client(
   Config.DISCORD_BOT_TOKEN,

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Start DEV (in memory DB)" type="NodeJSConfigurationType" application-parameters="--dev" node-parameters=" --loader ts-node/esm .\\src\\app.ts" typescript-loader="bundled" working-dir="$PROJECT_DIR$">
+  <configuration default="false" name="Start DEV (in memory DB)" type="NodeJSConfigurationType" application-parameters="--dev --populate-db-with-mock-data" node-parameters=" --loader ts-node/esm .\\src\\app.ts" typescript-loader="bundled" working-dir="$PROJECT_DIR$">
     <method v="2" />
   </configuration>
 </component>
