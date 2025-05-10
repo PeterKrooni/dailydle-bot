@@ -27,6 +27,7 @@
     "d3-node": "^4.0.1",
     "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
+    "fast-xml-parser": "^5.2.2",
     "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.5.2",
     "sharp": "^0.33.5",
