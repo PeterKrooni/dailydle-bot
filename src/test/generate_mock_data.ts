@@ -24,7 +24,7 @@ export async function generate_mock_data() {
         : Array.from({ length: 5 }, (_, i) => ({
             id: crypto.randomUUID() as Snowflake,
             name: `TestUser${i + 1}`,
-            server_name: `ServerNickname${i + 1}`
+            server_name: `User${i + 1}`
         }));
 
     const games = [
