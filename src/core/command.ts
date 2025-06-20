@@ -1,10 +1,11 @@
 import {
-  CommandInteraction,
+  ChatInputCommandInteraction,
+  CommandInteraction, CommandInteractionOption,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 
 export interface SlashCommandHandler {
-  (interaction: CommandInteraction): Promise<void>;
+  (interaction: ChatInputCommandInteraction): Promise<void>;
 }
 
 export interface SlashCommand {

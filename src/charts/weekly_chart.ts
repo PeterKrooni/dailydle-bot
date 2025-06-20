@@ -1,3 +1,4 @@
+// @ts-ignore
 import { D3Node } from 'd3-node';
 import sharp from 'sharp';
 import { GameEntry, GameEntryModel } from '../core/database/schema.js';

@@ -1,4 +1,4 @@
-import { PermissionFlagsBits } from 'discord.js';
+import { ChatInputCommandInteraction, PermissionFlagsBits } from 'discord.js';
 import { init_client } from './client.js';
 import Config from './config.js';
 import CommandBuilder from './core/builders/command_builder.js';
@@ -89,6 +89,27 @@ const bot_commands = [
       await interaction.reply({files: [{attachment: './generated_chart.png'}]})
     })
     .build(),
+  new CommandBuilder('submit')
+    .set_description('Resubmit a previous message (using ID), if for whatever reason the bot did not register the entry')
+    .set_handler(async (interaction) => {
+      if ("options" in interaction && "reply" in interaction) {
+        let messageID = interaction.options.getString('mid') ?? ''
+        await interaction.reply(`Parsing message ${messageID}`)
+        // do thingy
+        if ("getMessage" in interaction.options) {
+          console.log(interaction.options.getMessage())
+        }
+        await interaction.editReply('found message - somebody scored something in something (saving to db)')
+        await interaction.editReply('fixed shit - somebody scored something in something (submit for ok)')
+      }
+    })
+    .set_option({
+      name: "mid",
+      description: "Message ID of message to submit",
+      required: true
+    })
+    .build()
+    //.set_permissions(1) //?
 ];
 
 const dev_commands = [
