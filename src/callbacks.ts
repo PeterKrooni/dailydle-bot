@@ -74,6 +74,16 @@ function generate_message_event_callback(
 ): (message: Message<boolean>) => Promise<void> {
   return async (message) => {
     if (message_is_valid(message)) {
+
+      const resubmitReference
+        = process.env.BOT_ADMIN_DISCORD_USER_ID === message.author.id
+        && message.content.match(/resubmit/)
+        && message.reference?.messageId
+      if (resubmitReference) {
+            const referencedMessage = await message.channel.messages.fetch(message.reference.messageId);
+            message = referencedMessage as Message<boolean>;
+      }
+
       await Promise.all(games.map((game) => game.handle_message(message)))
         .then((games) => {
           if (games.filter((entry) => entry !== undefined).length > 0)
