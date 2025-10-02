@@ -8,6 +8,7 @@ import * as Gamedle from './games/gamedle.js';
 import * as NYT from './games/new_york_times.js';
 import * as NRK from './games/nrk.js';
 import * as Globle from './games/globle.js';
+import * as Bullpen from './games/bullpen.js';
 import { GameEntry, GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
 import { generate_weekly_chart } from './charts/weekly_chart.js';
@@ -37,6 +38,14 @@ const response_message = new GameSummaryMessage({
         { game: NYT.TheMini, inline: true },
         { game: NYT.Strands, inline: true },
       ],
+    },
+    {
+      title: 'Bullpen',
+      description: Bullpen.Description,
+      fields: [
+        { game: Bullpen.BullpenEasy, inline: true },
+        { game: Bullpen.BullpenHard, inline: true },
+      ]
     },
     {
       title: 'NRK',
