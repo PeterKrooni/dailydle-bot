@@ -7,7 +7,7 @@ Available on App store / Google play`;
 export const BullpenEasy = new GameBuilder('BullpenEasy')
   .add_message_parser(
     new MessageParser(
-      'BullpenEasy',
+      '🌱 Bullpen',
       /Bullpen — ([0-9]{1,2}\. [a-zæøå]+\. \d{4})\s*🌱 Lett: Løst på (?![Ii]ngen tid\.?$)((?:\d+(?::\d{2})?|\d+\.\ds))/,
       [MatchType.Day, MatchType.Score],
       (date) => date,
@@ -33,7 +33,7 @@ export const BullpenEasy = new GameBuilder('BullpenEasy')
 export const BullpenHard = new GameBuilder('BullpenHard')
   .add_message_parser(
     new MessageParser(
-      'BullpenHard',
+      '🔥 Bullpen',
       /Bullpen — ([0-9]{1,2}\. [a-zæøå]+\. \d{4})[\s\S]*?🔥 Vanskelig: Løst på (?![Ii]ngen tid\.?$)((?:\d+(?::\d{2})?|\d+(?:\.\d+)?s))/,
       [MatchType.Day, MatchType.Score],
       (date) => date,
