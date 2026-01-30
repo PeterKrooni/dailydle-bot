@@ -10,6 +10,7 @@ import * as NRK from './games/nrk.js';
 import * as Globle from './games/globle.js';
 import * as Bullpen from './games/bullpen.js';
 import * as FoodGuessr from './games/foodguessr.js';
+import * as TimeGuessr from './games/timeguessr.js';
 import { GameEntry, GameEntryModel } from './core/database/schema.js';
 import fs from 'node:fs';
 import { generate_weekly_chart } from './charts/weekly_chart.js';
@@ -81,6 +82,13 @@ const response_message = new GameSummaryMessage({
         { game: FoodGuessr.FoodGuessr, inline: true },
       ],
     },
+    {
+      title: 'TimeGuessr',
+      description: TimeGuessr.Description,
+      fields: [
+        { game: TimeGuessr.TimeGuessr, inline: true },
+      ]
+    }
 
   ],
 });
