@@ -2,6 +2,7 @@ import { EmbedField, Message, TextChannel } from 'discord.js';
 import { MessageParser } from './message_parser.js';
 import { GameEntry, GameEntryModel } from './database/schema.js';
 import { EmbedFieldFormatter } from './embeds/embed_formatter.js';
+import { summary_button_row } from './summary_button.js';
 import { get_today } from '../util.js';
 
 export interface Responder {
@@ -84,8 +85,10 @@ export class Game {
   }
 
   private static async send_response(message: Message, content: string) {
-    const sent_message = await (message.channel as TextChannel).send(content);
-    await sent_message.react('📋');
+    await (message.channel as TextChannel).send({
+      content,
+      components: [summary_button_row()],
+    });
   }
 
   /**

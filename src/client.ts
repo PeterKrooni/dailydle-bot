@@ -24,10 +24,8 @@ const CLIENT_PARTIALS: Partials[] = [Partials.Message, Partials.Channel];
  */
 const CLIENT_INTENTS: GatewayIntentBits[] = [
   GatewayIntentBits.DirectMessages,
-  GatewayIntentBits.DirectMessageReactions,
   GatewayIntentBits.MessageContent,
   GatewayIntentBits.GuildMessages,
-  GatewayIntentBits.GuildMessageReactions,
   GatewayIntentBits.Guilds,
 ];
 
