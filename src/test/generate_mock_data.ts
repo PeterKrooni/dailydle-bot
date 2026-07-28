@@ -7,23 +7,15 @@ interface DbEntry extends GameEntry {
   updatedAt?: Date;
 }
 
-/**
- * Days of history to generate, so `/weekly` has something to chart.
- */
+/** Days of history to generate, so `/weekly` has something to chart. */
 const DAYS = 7;
 
-/**
- * Share of games a mock user skips on a given day.
- */
+/** Share of games a mock user skips on a given day. */
 const SKIP_RATE = 0.1;
 
 /**
- * A game to generate entries for.
- *
- * `name` has to be the name entries are stored under - which is the name of the message parser that
- * would have matched a real result, not always the name of the game - or the summary will not find
- * them. `score` has to produce the same shape that parser stores, since that is what the
- * scoreboards are written against.
+ * `name` has to be the name entries are stored under - the name of the message parser that would
+ * have matched a real result, not always the name of the game - or the summary will not find them.
  */
 interface MockGame {
   name: string;
@@ -31,37 +23,25 @@ interface MockGame {
   day_id?: (date: Date) => string;
 }
 
-/**
- * Picks a random integer in `[min, max]`.
- */
+/** Picks a random integer in `[min, max]`. */
 const between = (min: number, max: number): number =>
   min + Math.floor(Math.random() * (max - min + 1));
 
-/**
- * Picks one of `values` at random.
- */
+/** Picks one of `values` at random. */
 const one_of = <T>(...values: T[]): T => values[between(0, values.length - 1)];
 
-/**
- * Rolls a `1/max` .. `max/max` score that fails `fail_rate` of the time, as Wordle and Bybandle
- * store them.
- */
+/** Rolls a `1/max` .. `max/max` score, failing `fail_rate` of the time. */
 const guesses_out_of = (max: number, fail_rate: number) => (): string =>
   Math.random() < fail_rate ? `X/${max}` : `${between(1, max)}/${max}`;
 
 const iso_date = (date: Date): string => date.toISOString().slice(0, 10);
 
-/**
- * Mints a Discord-shaped ID. Snowflakes are 19 digits, and mock IDs have to be the same length as
- * the real thing for the summary's character budget to behave the way it will in production.
- */
+/** 19 digits, like a real snowflake, so message links are a realistic length. */
 const snowflake = (): Snowflake =>
   String(between(1, 9)) +
   Array.from({ length: 18 }, () => between(0, 9)).join('');
 
-/**
- * Every game the bot tracks, so a mock run exercises all of the scoreboards at once.
- */
+/** Every game the bot tracks, so a mock run exercises all of the scoreboards. */
 const GAMES: MockGame[] = [
   { name: 'Wordle', score: guesses_out_of(6, 0.08) },
   { name: 'Connections', score: () => String(between(0, 4)) },
@@ -111,9 +91,7 @@ const GAMES: MockGame[] = [
   },
 ];
 
-/**
- * Puzzle numbers to count up from, for the games that identify a day by one.
- */
+/** Puzzle numbers to count up from, for the games that identify a day by one. */
 const BASE_DAY_IDS: Record<string, number> = {
   Wordle: 1351,
   Connections: 629,

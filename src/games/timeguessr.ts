@@ -2,10 +2,8 @@ import { GameBuilder } from '../core/builders/game_builder.js';
 import { highest_first, numeric } from '../core/embeds/scoreboard.js';
 import { MatchType, MessageParser } from '../core/message_parser.js';
 
-/** Points on offer across a daily round. */
 const TIMEGUESSR_MAX_POINTS = 50_000;
 
-/** From here up, a round went well enough to be worth marking. */
 const TIMEGUESSR_GREAT_SCORE = 45_000;
 
 export const TimeGuessr = new GameBuilder('TimeGuessr')
@@ -18,11 +16,8 @@ export const TimeGuessr = new GameBuilder('TimeGuessr')
       (score) => score.trim(),
     ),
   )
-  // Scored on points, so the biggest number wins. Scores are stored with their thousands separator,
-  // which `numeric` reads through.
   .set_score_sorter(highest_first())
   .set_scoreboard({
-    // The maximum belongs in the heading rather than repeated on every row.
     unit: `points / ${TIMEGUESSR_MAX_POINTS.toLocaleString('en-GB')}`,
     is_perfect: (score) => numeric(score) >= TIMEGUESSR_GREAT_SCORE,
   })

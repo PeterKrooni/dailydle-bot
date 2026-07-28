@@ -18,9 +18,6 @@ export const Wordle = new GameBuilder('Wordle')
   )
   .build();
 
-/**
- * Connections is scored on mistakes made, and allows four of them before the puzzle is lost.
- */
 const CONNECTIONS_MISTAKES_ALLOWED = 4;
 
 export const Connections = new GameBuilder('Connections')
@@ -95,9 +92,7 @@ export const TheMini = new GameBuilder('The Mini')
   )
   .build();
 
-/**
- * Strands scores are stored as `<hints>,<words found unaided>,<words found>`.
- */
+/** Strands scores are stored as `<hints>,<words found unaided>,<words found>`. */
 const hints_of = (score: string): string => score.split(',')[0];
 
 export const Strands = new GameBuilder('Strands')
@@ -113,8 +108,6 @@ export const Strands = new GameBuilder('Strands')
     return `${hints},${words - hints},${words}`;
   })
   .set_scoreboard({
-    // Everyone who finishes Strands finds every word, so hints used is the only thing that ranks
-    // one solve above another.
     unit: 'hints',
     display: hints_of,
     is_perfect: (score) => hints_of(score) === '0',
@@ -134,5 +127,4 @@ export const Description: string = `Daily games from the New York Times:
 [Mini Crossword](https://www.nytimes.com/crosswords/game/mini) | \
 [Strands](https://www.nytimes.com/games/strands)`;
 
-/** Wordle green. */
 export const Color: number = 0x6aaa64;

@@ -12,7 +12,6 @@ export const Tvers = new GameBuilder('Tvers')
       (match) => match,
     ),
   )
-  // Tvers awards points, so unlike most games here the biggest number wins.
   .set_score_sorter(highest_first())
   .set_scoreboard({ unit: 'points' })
   .set_responder((entry) => {
@@ -40,5 +39,4 @@ export const Description: string = `Daily games from NRK:
 [Tvers](https://www.nrk.no/spill/tvers) | \
 [Former](https://www.nrk.no/spill/former)`;
 
-/** NRK blue. */
 export const Color: number = 0x00b9f1;

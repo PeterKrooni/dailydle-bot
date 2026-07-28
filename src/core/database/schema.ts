@@ -46,18 +46,10 @@ export const GameEntryModel = model('GameEntry', schema);
 export interface SummaryMessage {
   channel_id: Snowflake;
 
-  /**
-   * Every message the summary is made up of, in the order they were posted. A summary too big for
-   * one message is split across several, and all of them have to be cleaned up together.
-   */
+  /** Every message the summary is made up of, in the order they were posted. */
   message_ids: Snowflake[];
 
-  /**
-   * Summaries tracked before they could span more than one message.
-   *
-   * @deprecated Read only, so rows written by an older version can still be cleaned up. New rows
-   * use `message_ids`.
-   */
+  /** @deprecated Read only, so rows written by an older version can still be cleaned up. */
   message_id?: Snowflake;
 }
 

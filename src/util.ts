@@ -10,10 +10,8 @@ export function seconds_to_display_time(seconds: number | string): string {
 }
 
 /**
- * Formats a duration in seconds as a clock, e.g. `83` as `1:23`.
- *
- * Preferred over `seconds_to_display_time` on scoreboards, where solve times sit in a column: two
- * times of the same magnitude are always the same width here, where `1m23s` and `2m3s` are not.
+ * Formats a duration in seconds as a clock, e.g. `83` as `1:23`. Preferred over
+ * `seconds_to_display_time` in a column, where `1m23s` and `2m3s` would not line up.
  */
 export function seconds_to_clock(seconds: number | string): string {
   const total = Math.floor(Number(seconds));

@@ -1,8 +1,6 @@
 import Game from '../game.js';
 
-/**
- * One scoreboard in a score collection.
- */
+/** One scoreboard in a score collection. */
 export interface ScoreField {
   game: Game;
   inline: boolean;
@@ -16,15 +14,10 @@ export interface ScoreCollection {
   description: string;
   fields: ScoreField[];
 
-  /**
-   * Colour of the embed's left edge, as `0xRRGGBB`. Giving each collection its own colour is what
-   * makes a wall of summary embeds skimmable.
-   */
+  /** Colour of the embed's left edge, as `0xRRGGBB`. */
   color?: number;
 
-  /**
-   * Footer text. Defaults to a count of who played, see `render_participation`.
-   */
+  /** Defaults to a count of who played, see `render_participation`. */
   footer?: string;
 }
 
@@ -35,9 +28,6 @@ export interface EmbedMessage {
   content: string | (() => string);
   embeds: ScoreCollection[];
 
-  /**
-   * Appended to `content` on a day nobody has registered a score yet, when there are no scoreboards
-   * to show at all.
-   */
+  /** Appended to `content` on a day with no scoreboards to show at all. */
   empty?: string;
 }

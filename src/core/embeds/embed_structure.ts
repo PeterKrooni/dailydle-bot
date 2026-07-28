@@ -9,33 +9,19 @@ import Game from '../game.js';
 import { SummaryMessage, SummaryMessageModel } from '../database/schema.js';
 import { get_today } from '../../util.js';
 import { EmbedMessage, ScoreCollection } from './embed_types.js';
-import {
-  LAYOUT_PREFERENCES,
-  Scoreboard,
-  ScoreboardLayout,
-} from './embed_formatter.js';
+import { Scoreboard } from './embed_formatter.js';
 
 /**
- * Discord's limit on the combined character count of every embed in one message.
+ * Discord's character limit, both on a single embed and on every embed in one message combined.
  *
- * A message over the limit is rejected outright, so a summary too big for one message is split
- * across several rather than cut down to fit.
+ * A message over the limit is rejected outright, so a summary too big for one is split across as
+ * many as it takes rather than cut down to fit. Collections are packed whole, so the only thing
+ * splitting cannot rescue is a single embed over the limit - see the warning in `pack_messages`.
  */
-const MAX_MESSAGE_EMBED_LENGTH = 6000;
+const MAX_EMBED_LENGTH = 6000;
 
-/**
- * Discord's limit on how many embeds one message may carry.
- */
+/** Discord's limit on how many embeds one message may carry. */
 const MAX_MESSAGE_EMBEDS = 10;
-
-/**
- * Messages one summary may span before it starts leaving things out instead.
- *
- * Splitting is better than dropping content, but a summary that goes on for screens is its own kind
- * of unreadable - so past this many messages the layout gives something up instead, see
- * `LAYOUT_PREFERENCES`.
- */
-const MAX_SUMMARY_MESSAGES = 3;
 
 /**
  * Represents a Discord message containing a summary of all game entries today.
@@ -44,8 +30,6 @@ export class GameSummaryMessage {
   private message: EmbedMessage;
 
   /**
-   * Initializes a game summary message with the given message.
-   *
    * @param {EmbedMessage} message The message.
    */
   constructor(message: EmbedMessage) {
@@ -165,45 +149,20 @@ export class GameSummaryMessage {
   }
 
   /**
-   * Builds the summary as a list of messages, each a list of embeds that fits what Discord accepts
-   * in one message.
-   *
-   * Every collection is rendered whole and then packed into messages, so nothing is trimmed just to
-   * make a message boundary work out. Only if the summary would still span more than
-   * `MAX_SUMMARY_MESSAGES` does the layout start giving something up.
+   * Builds the summary as a list of messages, each a list of embeds. Collections are rendered whole
+   * and packed into as many messages as it takes, so nothing is trimmed to fit a boundary.
    *
    * @returns {Promise<APIEmbed[][]>} One list of embeds per message, or empty if nobody played.
    */
   private async build_messages(): Promise<APIEmbed[][]> {
     const played = await this.load_played_collections();
-    if (played.length === 0) {
-      return [];
-    }
 
-    for (const layout of LAYOUT_PREFERENCES) {
-      const messages = pack_messages(render_collections(played, layout));
-
-      if (messages.length <= MAX_SUMMARY_MESSAGES) {
-        return messages;
-      }
-    }
-
-    // Nothing fit, which takes more collections than this bot has games. Show what will fit in the
-    // smallest layout and let the rest go.
-    const smallest = LAYOUT_PREFERENCES[LAYOUT_PREFERENCES.length - 1];
-    const messages = pack_messages(render_collections(played, smallest));
-    console.warn(
-      `Summary did not fit in ${MAX_SUMMARY_MESSAGES} messages; dropping ${messages.length - MAX_SUMMARY_MESSAGES} message(s) worth of collections.`,
-    );
-
-    return messages.slice(0, MAX_SUMMARY_MESSAGES);
+    return played.length === 0 ? [] : pack_messages(render_collections(played));
   }
 
   /**
-   * Loads every scoreboard with entries today, dropping the collections nobody played.
-   *
-   * Each game is one database query, and they are independent, so they go out together rather than
-   * one after another - the button this runs behind is waiting on all of them.
+   * Loads every scoreboard with entries today, dropping the collections nobody played. One query per
+   * game, issued together rather than in sequence - the button press is waiting on all of them.
    */
   private async load_played_collections(): Promise<PlayedCollection[]> {
     const collections = await Promise.all(
@@ -229,13 +188,8 @@ export class GameSummaryMessage {
   }
 }
 
-/**
- * Renders one embed per played collection, at the given layout.
- */
-function render_collections(
-  played: PlayedCollection[],
-  layout: ScoreboardLayout,
-): APIEmbed[] {
+/** Renders one embed per played collection. */
+function render_collections(played: PlayedCollection[]): APIEmbed[] {
   const embeds: APIEmbed[] = [];
 
   for (const { collection, scoreboards } of played) {
@@ -244,7 +198,7 @@ function render_collections(
     let entries = 0;
 
     for (const { scoreboard, inline } of scoreboards) {
-      const rendered = scoreboard.render(inline, layout);
+      const rendered = scoreboard.render(inline);
 
       if (rendered === null) {
         continue;
@@ -278,9 +232,8 @@ function render_collections(
 }
 
 /**
- * Packs embeds into messages, filling each one up to Discord's limits before starting the next.
- *
- * Collections are kept whole: an embed goes entirely into one message or entirely into the next.
+ * Fills each message up to Discord's limits before starting the next, keeping collections whole - an
+ * embed goes entirely into one message or entirely into the next.
  */
 function pack_messages(embeds: APIEmbed[]): APIEmbed[][] {
   const messages: APIEmbed[][] = [];
@@ -289,9 +242,16 @@ function pack_messages(embeds: APIEmbed[]): APIEmbed[][] {
 
   for (const embed of embeds) {
     const embed_size = embed_length(embed);
+
+    if (embed_size > MAX_EMBED_LENGTH) {
+      console.warn(
+        `Embed '${embed.title}' is ${embed_size} characters, over Discord's ${MAX_EMBED_LENGTH} limit for one embed. Splitting cannot help - the collection has too many games for one embed.`,
+      );
+    }
+
     const full =
       current.length >= MAX_MESSAGE_EMBEDS ||
-      length + embed_size > MAX_MESSAGE_EMBED_LENGTH;
+      length + embed_size > MAX_EMBED_LENGTH;
 
     if (full && current.length > 0) {
       messages.push(current);
@@ -310,9 +270,7 @@ function pack_messages(embeds: APIEmbed[]): APIEmbed[][] {
   return messages;
 }
 
-/**
- * Counts the characters Discord counts against an embed.
- */
+/** Counts the characters Discord counts against an embed. */
 function embed_length(embed: APIEmbed): number {
   return (
     (embed.title?.length ?? 0) +
@@ -325,10 +283,7 @@ function embed_length(embed: APIEmbed): number {
   );
 }
 
-/**
- * Every message a tracked summary was made up of, including rows written before summaries could
- * span more than one message.
- */
+/** Also reads rows written before summaries could span more than one message. */
 function replaced_message_ids(replaced: SummaryMessage): Snowflake[] {
   if (replaced.message_ids?.length) {
     return replaced.message_ids;
@@ -350,12 +305,7 @@ interface PlayedScoreboard {
   inline: boolean;
 }
 
-/**
- * Renders a collection's footer, e.g. `3 players · 7 entries`.
- *
- * Says how much of the collection was actually played, which the scoreboards themselves cannot -
- * a scoreboard only shows the games someone got round to.
- */
+/** Renders a collection's footer, e.g. `3 players · 7 entries`. */
 function render_participation(players: number, entries: number): string {
   return `${players} ${players === 1 ? 'player' : 'players'} · ${entries} ${
     entries === 1 ? 'entry' : 'entries'

@@ -75,7 +75,6 @@ export const FourByThree = new GameBuilder('4x3')
       parse_score,
     ),
   )
-  // Scored on points, so the biggest number wins. An unsolved puzzle scores `X` and ranks last.
   .set_score_sorter(highest_first())
   .set_scoreboard({
     unit: 'points',
@@ -106,5 +105,4 @@ export const FourByThree = new GameBuilder('4x3')
 export const Description: string = `Daily 4x3 puzzle by Hank Green:
 [Play 4x3](https://4x3.fun/)`;
 
-/** Gold, after the 🌟 shared word. */
 export const Color: number = 0xfacc15;

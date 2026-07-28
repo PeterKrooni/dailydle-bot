@@ -2,7 +2,6 @@ import { GameBuilder } from '../core/builders/game_builder.js';
 import { highest_first } from '../core/embeds/scoreboard.js';
 import { MatchType, MessageParser } from '../core/message_parser.js';
 
-/** Plates in a daily Plate-Off. */
 const FOODGUESSR_PLATES = 10;
 
 export const FoodGuessr = new GameBuilder('FoodGuessr')
@@ -15,7 +14,6 @@ export const FoodGuessr = new GameBuilder('FoodGuessr')
       (score) => score.trim(),
     ),
   )
-  // Scored on plates guessed right, so the biggest number wins.
   .set_score_sorter(highest_first())
   .set_scoreboard({
     unit: 'correct',
@@ -32,5 +30,4 @@ export const FoodGuessr = new GameBuilder('FoodGuessr')
 export const Description: string = `Daily FoodGuessr Plate-Off game:
 [Play FoodGuessr](https://www.foodguessr.com/game/plate-off/daily)`;
 
-/** Warm red, after the site's branding. */
 export const Color: number = 0xef476f;

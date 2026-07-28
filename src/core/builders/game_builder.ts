@@ -83,28 +83,19 @@ export class GameBuilder {
     return this;
   }
 
-  /**
-   * Sets how this game's scores are presented on the summary scoreboard - its heading, what the
-   * score measures, and how a stored score is rendered.
-   */
+  /** Sets how this game's scores are presented on the summary scoreboard. */
   set_scoreboard(scoreboard: ScoreboardStyle): GameBuilder {
     this.scoreboard = scoreboard;
     return this;
   }
 
-  /**
-   * Sets the score sorter used for ranking this game's scoreboard.
-   *
-   * Defaults to `lowest_first`, so games where a higher score wins have to say so.
-   */
+  /** Defaults to `lowest_first`, so games where a higher score wins have to say so. */
   set_score_sorter(score_sorter: ScoreSorter): GameBuilder {
     this.score_sorter = score_sorter;
     return this;
   }
 
-  /**
-   * Sets the maximum game entries shown on this game's scoreboard.
-   */
+  /** Sets the maximum game entries shown on this game's scoreboard. */
   set_max_embed_field_entries(max_entries: number): GameBuilder {
     this.max_entries = max_entries;
     return this;

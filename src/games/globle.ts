@@ -2,10 +2,6 @@ import { GameBuilder } from '../core/builders/game_builder.js';
 import { ScoreboardStyle } from '../core/embeds/scoreboard.js';
 import { MatchType, MessageParser } from '../core/message_parser.js';
 
-/**
- * Both Globles are won by naming the country in as few guesses as possible, and getting it on the
- * first guess is a genuine fluke worth marking.
- */
 const globle_scoreboard = (title: string): ScoreboardStyle => ({
   title: title,
   unit: 'guesses',
@@ -48,5 +44,4 @@ export const Description: string = `Daily games from Globle:
 [Globle](https://globle-game.com/) | \
 [Globle Capitals](https://globle-capitals.com/)`;
 
-/** Teal, after the site's ocean. */
 export const Color: number = 0x14b8a6;

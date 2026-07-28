@@ -14,10 +14,7 @@ function gamedle_score_parser(max_attempts: number): MatchParser {
       .toString();
 }
 
-/**
- * Every Gamedle mode counts guesses against a cap, and a score at the cap means the game was never
- * guessed. Modes are titled without the `Gamedle` prefix, which the embed around them already says.
- */
+/** A score at the cap means the game was never guessed. */
 function gamedle_scoreboard(
   title: string,
   max_attempts: number,
@@ -82,5 +79,4 @@ export const Description: string = `Daily games from Gamedle:
 [Keywords](https://www.gamedle.wtf/keywords) | \
 [Guess](https://www.gamedle.wtf/guess)`;
 
-/** Purple, after the site's header. */
 export const Color: number = 0x9b5de5;

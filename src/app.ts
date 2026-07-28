@@ -25,8 +25,7 @@ const response_message_content = () =>
 ### ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}
 -# Share your dailydle scores in this channel to register your entry`;
 
-const no_scores_content =
-  '*Nothing registered yet today - be the first.*';
+const no_scores_content = '*Nothing registered yet today - be the first.*';
 
 const enable_dev_features = process.argv.includes('--dev')
 if (enable_dev_features) {

@@ -23,5 +23,4 @@ export const Bybandle = new GameBuilder('Bybandle')
 export const Description: string = `Guess today's Bergen light rail jingle:
 [Bybandle](https://bybandle-production.up.railway.app)`;
 
-/** Bybanen blue. */
 export const Color: number = 0x005aa7;
