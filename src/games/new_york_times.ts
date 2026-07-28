@@ -48,10 +48,10 @@ export const Connections = new GameBuilder('Connections')
     is_perfect: (score) => score === '0',
     is_failed: (score) => Number(score) >= CONNECTIONS_MISTAKES_ALLOWED,
   })
-  .set_responder(
-    (entry) =>
-      `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) < 4 ? 'did' : 'failed'} Connections ${entry.day_id} ${Number(entry.score) < 4 ? 'with' : 'after'} ${entry.score == '0' ? 'no' : entry.score} mistakes`,
-  )
+  .set_responder((entry) => {
+    const solved = Number(entry.score) < CONNECTIONS_MISTAKES_ALLOWED;
+    return `${entry.user.server_name ?? entry.user.name} ${solved ? 'did' : 'failed'} Connections ${entry.day_id} ${solved ? 'with' : 'after'} ${entry.score == '0' ? 'no' : entry.score} mistakes`;
+  })
   .build();
 
 export const TheMini = new GameBuilder('The Mini')

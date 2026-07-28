@@ -110,11 +110,12 @@ export async function generate_mock_data() {
     createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
   });
 
-  // Take 5 random active users or create mock users if none exist
+  // Take 5 random active users, or create mock users if none exist - enough of them to push a
+  // scoreboard past its 10 rows, so the `+ N more` trimming is exercised too.
   const selectedUsers =
     activeUsers.length > 0
       ? activeUsers.sort(() => 0.5 - Math.random()).slice(0, 5)
-      : Array.from({ length: 5 }, (_, i) => ({
+      : Array.from({ length: 12 }, (_, i) => ({
           id: snowflake(),
           name: `TestUser${i + 1}`,
           // Marked so an invented score is never mistaken for somebody's real result.

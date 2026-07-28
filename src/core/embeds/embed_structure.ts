@@ -66,22 +66,26 @@ export class GameSummaryMessage {
       embeds: messages[0] ?? [],
     });
 
+    // Whatever happens below, every message that made it out must be tracked - an untracked
+    // message is invisible to cleanup and sits in the channel forever.
     const posted: Snowflake[] = [first.id];
-    for (const embeds of messages.slice(1)) {
-      const continuation = await interaction.followUp({ embeds: embeds });
-      posted.push(continuation.id);
+    try {
+      for (const embeds of messages.slice(1)) {
+        const continuation = await interaction.followUp({ embeds: embeds });
+        posted.push(continuation.id);
+      }
+
+      console.log(
+        `Sent summary in ${posted.length} message(s) to ${interaction.member?.user.username ?? interaction.user.username}.`,
+      );
+    } finally {
+      // Only once the new summary is up do we clear away the one it replaces.
+      const replaced = await GameSummaryMessage.track_summary(
+        interaction.channelId,
+        posted,
+      );
+      await GameSummaryMessage.delete_replaced_summary(interaction, replaced);
     }
-
-    console.log(
-      `Sent summary in ${posted.length} message(s) to ${interaction.member?.user.username ?? interaction.user.username}.`,
-    );
-
-    // Only once the new summary is up do we clear away the one it replaces.
-    const replaced = await GameSummaryMessage.track_summary(
-      interaction.channelId,
-      posted,
-    );
-    await GameSummaryMessage.delete_replaced_summary(interaction, replaced);
   }
 
   /**

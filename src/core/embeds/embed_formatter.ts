@@ -155,7 +155,7 @@ function render_value(rows: string[], total_entries: number): string {
   return (remainder > 0 ? [...rows, more_row(remainder)] : rows).join('\n');
 }
 
-/** `-#` is Discord's subtext markup, rendering this smaller and greyer than a real row. */
+/** Italic, not `-#` subtext - Discord does not render subtext inside embed fields. */
 function more_row(remainder: number): string {
-  return `-# + ${remainder} more`;
+  return `*+ ${remainder} more*`;
 }

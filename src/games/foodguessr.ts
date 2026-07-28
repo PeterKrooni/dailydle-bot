@@ -21,9 +21,9 @@ export const FoodGuessr = new GameBuilder('FoodGuessr')
     is_perfect: (score) => Number(score) === FOODGUESSR_PLATES,
   })
   .set_responder((entry) => {
-    return entry.score === '10'
+    return Number(entry.score) === FOODGUESSR_PLATES
       ? `⭐ ${entry.user.server_name ?? entry.user.name} achieved a perfect score on FoodGuessr! ⭐`
-      : `${entry.user.server_name ?? entry.user.name} did FoodGuessr with score ${entry.score}/10.`;
+      : `${entry.user.server_name ?? entry.user.name} did FoodGuessr with score ${entry.score}/${FOODGUESSR_PLATES}.`;
   })
   .build();
 
