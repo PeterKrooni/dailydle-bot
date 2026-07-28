@@ -6,6 +6,11 @@ export const Bybandle = new GameBuilder('Bybandle')
     MatchType.Day,
     MatchType.Score,
   ])
+  .set_scoreboard({
+    unit: 'guesses',
+    is_perfect: (score) => score.startsWith('1/'),
+    is_failed: (score) => score.startsWith('X'),
+  })
   .set_responder((entry) => {
     const user = entry.user.server_name ?? entry.user.name;
     if (entry.score.startsWith('X')) {
@@ -17,3 +22,6 @@ export const Bybandle = new GameBuilder('Bybandle')
 
 export const Description: string = `Guess today's Bergen light rail jingle:
 [Bybandle](https://bybandle-production.up.railway.app)`;
+
+/** Bybanen blue. */
+export const Color: number = 0x005aa7;

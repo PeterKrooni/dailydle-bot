@@ -1,122 +1,240 @@
-import { EmbedField } from 'discord.js';
+import { APIEmbedField, Snowflake } from 'discord.js';
 import { GameEntry, GameEntryModel } from '../database/schema.js';
 import { get_today } from '../../util.js';
+import {
+  lowest_first,
+  render_heading,
+  render_rows,
+  ScoreboardStyle,
+  ScoreSorter,
+} from './scoreboard.js';
 
 /**
- * A function that sorts game entries.
+ * Discord's limit on the character count of a single embed field value.
  */
-export interface ScoreSorter {
-  (a: GameEntry, b: GameEntry): number;
+export const MAX_FIELD_VALUE_LENGTH = 1024;
+
+/**
+ * Rows to show on a scoreboard before the rest are summarized as `+ N more`.
+ */
+export const DEFAULT_MAX_ENTRIES = 10;
+
+/**
+ * How much of a scoreboard to render.
+ */
+export interface ScoreboardLayout {
+  /**
+   * Rows to show at most.
+   */
+  rows: number;
+
+  /**
+   * Whether names link to the message the score was shared in.
+   */
+  links: boolean;
 }
 
 /**
- * A function that formats a score for display in a message embed.
+ * Layouts to render the summary in, best first, falling through until one fits inside Discord's
+ * embed budget.
  *
- * @param {string} user_link - A username formatted with a link to their game entry message.
- * @param {string} score - Their score.
+ * A player's name links to the message they shared their score in, and that link is around five
+ * sixths of a row's length. On a quiet day everything fits and nothing is given up; on a day where
+ * every game was played by everybody, that much of the budget spent on links would leave room for a
+ * podium of one. Deep scoreboards are worth more than clickable names, so the links go first, and
+ * only then does the summary start showing fewer players.
  */
-export interface ScoreFormatter {
-  (user_link: string, score: string): string;
+export const LAYOUT_PREFERENCES: ScoreboardLayout[] = [
+  { rows: DEFAULT_MAX_ENTRIES, links: true },
+  { rows: 6, links: true },
+  { rows: 5, links: true },
+  { rows: DEFAULT_MAX_ENTRIES, links: false },
+  { rows: 6, links: false },
+  { rows: 5, links: false },
+  { rows: 3, links: false },
+  { rows: 1, links: false },
+];
+
+/**
+ * A rendered scoreboard, and what went into it.
+ */
+export interface ScoreboardField {
+  /**
+   * The scoreboard as an embed field.
+   */
+  field: APIEmbedField;
+
+  /**
+   * Discord user IDs of everyone with an entry on this scoreboard.
+   */
+  players: Snowflake[];
+
+  /**
+   * Number of entries on this scoreboard, counting any it had no room for.
+   */
+  entries: number;
 }
 
 /**
- * Default score sorter. Sorts in ascending order, with letters after numbers.
- */
-export const DEFAULT_SCORE_SORTER: ScoreSorter = (
-  a: GameEntry,
-  b: GameEntry,
-) => {
-  const x = parseInt(a.score);
-  const y = parseInt(b.score);
-  return isNaN(x) ? 1 : isNaN(y) ? -1 : x - y;
-};
-
-/**
- * Default score formatter. Returns `<user_link> : <score>`.
- */
-export const DEFAULT_SCORE_FORMATTER: ScoreFormatter = (
-  user_link: string,
-  score: string,
-) => `${user_link} : ${score}`;
-
-/**
- * Formatter responsible for generating an embed field for a game.
+ * Formatter responsible for turning a game's entries from today into a scoreboard.
  */
 export class EmbedFieldFormatter {
-  private name: string;
+  private game_names: string[];
+  private style: ScoreboardStyle;
   private score_sorter: ScoreSorter;
-  private score_formatter: ScoreFormatter;
-  private max_entries?: number;
+  private max_entries: number;
 
   /**
    * Initializes an `EmbedFieldFormatter`.
    *
-   * @param {string} name - The name of the game, used as the title of the embed field.
-   * @param {ScoreSorter} [score_sorter=DEFAULT_SCORE_SORTER] - Score sorting function for
-   * displaying top entries.
-   * @param {ScoreFormatter} [score_formatter=DEFAULT_SCORE_FORMATTER] - Score formatting function
-   * for displaying game entries.
-   * @param {number} [max_entries=5] - Optional. The maximum entries to show in the field, the
-   * remainder being displayed as `+N`.
+   * @param {string[]} game_names - Names entries for this game are stored under. A game can have
+   * more than one, as each of its message parsers names the entries it produces.
+   * @param {ScoreboardStyle} [style={}] - How this game's scores are presented.
+   * @param {ScoreSorter} [score_sorter=lowest_first()] - Ranks the entries, best result first.
+   * @param {number} [max_entries=DEFAULT_MAX_ENTRIES] - Rows to show before the remainder is
+   * summarized as `+ N more`.
    */
   constructor(
-    name: string,
-    score_sorter: ScoreSorter = DEFAULT_SCORE_SORTER,
-    score_formatter: ScoreFormatter = DEFAULT_SCORE_FORMATTER,
-    max_entries: number = 5,
+    game_names: string[],
+    style: ScoreboardStyle = {},
+    score_sorter: ScoreSorter = lowest_first(),
+    max_entries: number = DEFAULT_MAX_ENTRIES,
   ) {
-    this.name = name;
+    this.game_names = game_names;
+    this.style = style;
     this.score_sorter = score_sorter;
-    this.score_formatter = score_formatter;
     this.max_entries = max_entries;
   }
 
   /**
-   * Generates an embed field.
+   * Loads and ranks today's entries for this game.
    *
-   * @param {boolean} [inline=true] - Whether the embed field should be inline.
-   * @returns {Promise<EmbedField>} The embed field.
+   * Loading is separate from rendering so that the summary can see how much there is to show across
+   * every game before it decides how many rows each scoreboard gets - see `Scoreboard.render`.
+   *
+   * @returns {Promise<Scoreboard | null>} The scoreboard, or `null` if nobody played today.
    */
-  public async get_embed_field(
-    inline: boolean = true,
-  ): Promise<EmbedField | null> {
-    let entries = await GameEntryModel.find({
-      game: this.name,
+  public async load(): Promise<Scoreboard | null> {
+    const entries = await GameEntryModel.find({
+      game: { $in: this.game_names },
       createdAt: { $gte: get_today() },
     }).exec();
-    entries.sort(this.score_sorter);
-
-    // Handle max entries. If `max_entries` is set, slice the array and
-    // save the remainder so we can use it later to append a `+ N` to
-    // the end of the field.
-    let remainder = 0;
-    if (this.max_entries !== undefined) {
-      remainder = entries.length - this.max_entries;
-      entries = entries.slice(0, this.max_entries);
-    }
 
     if (entries.length === 0) {
       return null;
     }
 
-    let value = entries
-      .map((e) => {
-        const message_url = `https://discord.com/channels/${e.server_id}/${e.channel_id}/${e.message_id}`;
-        const user = `[${e.user.server_name ?? e.user.name}](${message_url})`;
-    
-        return this.score_formatter(user, e.score)
-      })
-      .join('\n');
+    return new Scoreboard(
+      render_heading(this.style, this.game_names[0]),
+      this.style,
+      [...entries].sort(this.score_sorter),
+      this.max_entries,
+    );
+  }
+}
 
-    // Add remainder if applicable
-    if (remainder > 0) {
-      value += `\n+ ${remainder}`;
+/**
+ * One game's ranked entries for today, ready to be rendered as an embed field.
+ */
+export class Scoreboard {
+  readonly heading: string;
+  readonly entries: GameEntry[];
+  private style: ScoreboardStyle;
+  private max_entries: number;
+
+  constructor(
+    heading: string,
+    style: ScoreboardStyle,
+    entries: GameEntry[],
+    max_entries: number,
+  ) {
+    this.heading = heading;
+    this.style = style;
+    this.entries = entries;
+    this.max_entries = max_entries;
+  }
+
+  /**
+   * Renders the scoreboard as an embed field.
+   *
+   * @param {boolean} inline - Whether the embed field should be inline.
+   * @param {ScoreboardLayout} layout - How much of the scoreboard to render.
+   * @param {number} budget - Characters the field value may take up.
+   * @returns {ScoreboardField | null} The field, or `null` if there was not room for even one row.
+   */
+  public render(
+    inline: boolean,
+    layout: ScoreboardLayout,
+    budget: number = MAX_FIELD_VALUE_LENGTH,
+  ): ScoreboardField | null {
+    const limit = Math.min(layout.rows, this.max_entries);
+    const rows = render_rows(
+      this.entries.slice(0, limit),
+      this.style,
+      layout.links,
+    );
+    const value = fit_rows(rows, this.entries.length, budget);
+
+    if (value === null) {
+      return null;
     }
 
     return {
-      name: this.name,
-      value: value,
-      inline: inline,
+      field: { name: this.heading, value: value, inline: inline },
+      players: this.players,
+      entries: this.entries.length,
     };
   }
+
+  /**
+   * Discord user IDs of everyone with an entry on this scoreboard.
+   */
+  public get players(): Snowflake[] {
+    return [...new Set(this.entries.map((entry) => entry.user.id))];
+  }
+}
+
+/**
+ * Joins as many rows as fit in `budget`, summarizing everything left over as `+ N more`.
+ *
+ * Rows carry a link per player, so a busy day can run a scoreboard past what Discord accepts in a
+ * field - and an embed Discord rejects means no summary at all. Trimming to fit keeps the top of
+ * the scoreboard, which is the part worth reading.
+ *
+ * @returns {string | null} The field value, or `null` if there was not even room for one row.
+ */
+function fit_rows(
+  rows: string[],
+  total_entries: number,
+  budget: number,
+): string | null {
+  const limit = Math.min(budget, MAX_FIELD_VALUE_LENGTH);
+  const shown: string[] = [];
+
+  for (const row of rows) {
+    if (render_value([...shown, row], total_entries).length > limit) {
+      break;
+    }
+    shown.push(row);
+  }
+
+  return shown.length === 0 ? null : render_value(shown, total_entries);
+}
+
+/**
+ * Joins rows into a field value, ending on a `+ N more` line if any entries are left out.
+ */
+function render_value(rows: string[], total_entries: number): string {
+  const remainder = total_entries - rows.length;
+
+  return (remainder > 0 ? [...rows, more_row(remainder)] : rows).join('\n');
+}
+
+/**
+ * Renders the line standing in for entries the scoreboard had no room for.
+ *
+ * `-#` is Discord's subtext markup, which renders this smaller and greyer than a real row.
+ */
+function more_row(remainder: number): string {
+  return `-# + ${remainder} more`;
 }
