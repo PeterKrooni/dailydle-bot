@@ -18,8 +18,8 @@ import {
 /**
  * Discord's limit on the combined character count of every embed in one message.
  *
- * The summary is sized to fit this rather than built blindly, because a message over the limit is
- * rejected outright - which on the busiest day of the year would mean no summary at all.
+ * A message over the limit is rejected outright, so a summary too big for one message is split
+ * across several rather than cut down to fit.
  */
 const MAX_MESSAGE_EMBED_LENGTH = 6000;
 
@@ -29,9 +29,13 @@ const MAX_MESSAGE_EMBED_LENGTH = 6000;
 const MAX_MESSAGE_EMBEDS = 10;
 
 /**
- * Characters held back from the budget for each embed's footer.
+ * Messages one summary may span before it starts leaving things out instead.
+ *
+ * Splitting is better than dropping content, but a summary that goes on for screens is its own kind
+ * of unreadable - so past this many messages the layout gives something up instead, see
+ * `LAYOUT_PREFERENCES`.
  */
-const FOOTER_ALLOWANCE = 48;
+const MAX_SUMMARY_MESSAGES = 3;
 
 /**
  * Represents a Discord message containing a summary of all game entries today.
@@ -49,8 +53,11 @@ export class GameSummaryMessage {
   }
 
   /**
-   * Sends the game summary message as a reply to the given button interaction, then deletes the
-   * summary message it replaces - see `delete_replaced_summary`.
+   * Sends the game summary as a reply to the given button interaction, then deletes the summary it
+   * replaces - see `delete_replaced_summary`.
+   *
+   * A summary too big for one message continues into follow-up messages. The first goes out as the
+   * reply to the button so the press is answered, and the rest follow it in order.
    *
    * The interaction is deferred before anything else, because building the summary hits the
    * database and Discord discards interactions that are not acknowledged within three seconds.
@@ -60,35 +67,41 @@ export class GameSummaryMessage {
   async send(interaction: ButtonInteraction) {
     await interaction.deferReply();
 
-    const embeds = await this.get_embeds();
+    const messages = await this.build_messages();
     const content =
       typeof this.message.content === 'string'
         ? this.message.content
         : this.message.content();
 
-    const payload = {
+    const first = await interaction.editReply({
       // With no scoreboards to show there is nothing to explain the empty message, so say it.
       content:
-        embeds.length === 0 && this.message.empty
+        messages.length === 0 && this.message.empty
           ? `${content}\n\n${this.message.empty}`
           : content,
-      embeds: embeds,
-    };
-    const summary = await interaction.editReply(payload);
+      embeds: messages[0] ?? [],
+    });
+
+    const posted: Snowflake[] = [first.id];
+    for (const embeds of messages.slice(1)) {
+      const continuation = await interaction.followUp({ embeds: embeds });
+      posted.push(continuation.id);
+    }
+
     console.log(
-      `Sent summary message to ${interaction.member?.user.username ?? interaction.user.username}.`,
+      `Sent summary in ${posted.length} message(s) to ${interaction.member?.user.username ?? interaction.user.username}.`,
     );
 
     // Only once the new summary is up do we clear away the one it replaces.
     const replaced = await GameSummaryMessage.track_summary(
       interaction.channelId,
-      summary.id,
+      posted,
     );
     await GameSummaryMessage.delete_replaced_summary(interaction, replaced);
   }
 
   /**
-   * Records `message_id` as the current summary message for `channel_id`, and returns the entry it
+   * Records `message_ids` as the current summary for `channel_id`, and returns the entry it
    * replaced - if any.
    *
    * The swap is a single atomic update so that two people clicking the summary button at the same
@@ -96,18 +109,23 @@ export class GameSummaryMessage {
    */
   private static async track_summary(
     channel_id: Snowflake,
-    message_id: Snowflake,
+    message_ids: Snowflake[],
   ): Promise<SummaryMessage | null> {
     return await SummaryMessageModel.findOneAndUpdate(
       { channel_id: channel_id },
-      { channel_id: channel_id, message_id: message_id },
+      {
+        $set: { channel_id: channel_id, message_ids: message_ids },
+        // Clear the single-message field, so a row written by an older version is not left behind
+        // pointing at a message this one has already accounted for.
+        $unset: { message_id: '' },
+      },
       { upsert: true },
     ).exec();
   }
 
   /**
-   * Deletes a summary message that has been replaced by a newer one, keeping a single summary per
-   * channel per day.
+   * Deletes a summary that has been replaced by a newer one, keeping a single summary per channel
+   * per day. All of the replaced summary's messages go, not just the first.
    *
    * Summaries from previous days are left alone - those are a record of that day. Failing to
    * delete is not treated as an error: the message may well be gone already.
@@ -121,14 +139,18 @@ export class GameSummaryMessage {
       return;
     }
 
-    await interaction.channel?.messages
-      .fetch(replaced.message_id)
-      .then((message) => message.delete())
-      .catch((err) =>
-        console.info(
-          `Could not delete replaced summary message ${replaced.message_id}: ${err}`,
-        ),
-      );
+    await Promise.all(
+      replaced_message_ids(replaced).map((message_id) =>
+        interaction.channel?.messages
+          .fetch(message_id)
+          .then((message) => message.delete())
+          .catch((err) =>
+            console.info(
+              `Could not delete replaced summary message ${message_id}: ${err}`,
+            ),
+          ),
+      ),
+    );
   }
 
   /**
@@ -142,63 +164,39 @@ export class GameSummaryMessage {
     );
   }
 
-  private async get_embeds(): Promise<APIEmbed[]> {
+  /**
+   * Builds the summary as a list of messages, each a list of embeds that fits what Discord accepts
+   * in one message.
+   *
+   * Every collection is rendered whole and then packed into messages, so nothing is trimmed just to
+   * make a message boundary work out. Only if the summary would still span more than
+   * `MAX_SUMMARY_MESSAGES` does the layout start giving something up.
+   *
+   * @returns {Promise<APIEmbed[][]>} One list of embeds per message, or empty if nobody played.
+   */
+  private async build_messages(): Promise<APIEmbed[][]> {
     const played = await this.load_played_collections();
     if (played.length === 0) {
       return [];
     }
 
-    const layout = fit_layout(played);
-    const embeds: APIEmbed[] = [];
-    let budget = MAX_MESSAGE_EMBED_LENGTH;
+    for (const layout of LAYOUT_PREFERENCES) {
+      const messages = pack_messages(render_collections(played, layout));
 
-    for (const { collection, scoreboards } of played) {
-      const fields: APIEmbedField[] = [];
-      const players = new Set<Snowflake>();
-      let entries = 0;
-
-      budget -= collection.title.length + collection.description.length;
-
-      for (const { scoreboard, inline } of scoreboards) {
-        const rendered = scoreboard.render(
-          inline,
-          layout,
-          budget - FOOTER_ALLOWANCE,
-        );
-
-        if (rendered === null) {
-          continue;
-        }
-
-        fields.push(rendered.field);
-        rendered.players.forEach((player) => players.add(player));
-        entries += rendered.entries;
-        budget -= rendered.field.name.length + rendered.field.value.length;
+      if (messages.length <= MAX_SUMMARY_MESSAGES) {
+        return messages;
       }
-
-      // A collection whose scoreboards all got squeezed out contributes nothing but a title.
-      if (fields.length === 0) {
-        continue;
-      }
-
-      const footer =
-        collection.footer ?? render_participation(players.size, entries);
-      budget -= footer.length;
-
-      const embed = new EmbedBuilder()
-        .setTitle(collection.title)
-        .setDescription(collection.description)
-        .addFields(fields)
-        .setFooter({ text: footer });
-
-      if (collection.color !== undefined) {
-        embed.setColor(collection.color);
-      }
-
-      embeds.push(embed.data);
     }
 
-    return embeds;
+    // Nothing fit, which takes more collections than this bot has games. Show what will fit in the
+    // smallest layout and let the rest go.
+    const smallest = LAYOUT_PREFERENCES[LAYOUT_PREFERENCES.length - 1];
+    const messages = pack_messages(render_collections(played, smallest));
+    console.warn(
+      `Summary did not fit in ${MAX_SUMMARY_MESSAGES} messages; dropping ${messages.length - MAX_SUMMARY_MESSAGES} message(s) worth of collections.`,
+    );
+
+    return messages.slice(0, MAX_SUMMARY_MESSAGES);
   }
 
   /**
@@ -225,12 +223,118 @@ export class GameSummaryMessage {
       })),
     );
 
-    // Only collections someone played today, and only as many embeds as Discord will carry in one
-    // message - anything past that is dropped before it can eat into the character budget.
-    return collections
-      .filter((collection) => collection.scoreboards.length > 0)
-      .slice(0, MAX_MESSAGE_EMBEDS);
+    return collections.filter(
+      (collection) => collection.scoreboards.length > 0,
+    );
   }
+}
+
+/**
+ * Renders one embed per played collection, at the given layout.
+ */
+function render_collections(
+  played: PlayedCollection[],
+  layout: ScoreboardLayout,
+): APIEmbed[] {
+  const embeds: APIEmbed[] = [];
+
+  for (const { collection, scoreboards } of played) {
+    const fields: APIEmbedField[] = [];
+    const players = new Set<Snowflake>();
+    let entries = 0;
+
+    for (const { scoreboard, inline } of scoreboards) {
+      const rendered = scoreboard.render(inline, layout);
+
+      if (rendered === null) {
+        continue;
+      }
+
+      fields.push(rendered.field);
+      rendered.players.forEach((player) => players.add(player));
+      entries += rendered.entries;
+    }
+
+    if (fields.length === 0) {
+      continue;
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle(collection.title)
+      .setDescription(collection.description)
+      .addFields(fields)
+      .setFooter({
+        text: collection.footer ?? render_participation(players.size, entries),
+      });
+
+    if (collection.color !== undefined) {
+      embed.setColor(collection.color);
+    }
+
+    embeds.push(embed.data);
+  }
+
+  return embeds;
+}
+
+/**
+ * Packs embeds into messages, filling each one up to Discord's limits before starting the next.
+ *
+ * Collections are kept whole: an embed goes entirely into one message or entirely into the next.
+ */
+function pack_messages(embeds: APIEmbed[]): APIEmbed[][] {
+  const messages: APIEmbed[][] = [];
+  let current: APIEmbed[] = [];
+  let length = 0;
+
+  for (const embed of embeds) {
+    const embed_size = embed_length(embed);
+    const full =
+      current.length >= MAX_MESSAGE_EMBEDS ||
+      length + embed_size > MAX_MESSAGE_EMBED_LENGTH;
+
+    if (full && current.length > 0) {
+      messages.push(current);
+      current = [];
+      length = 0;
+    }
+
+    current.push(embed);
+    length += embed_size;
+  }
+
+  if (current.length > 0) {
+    messages.push(current);
+  }
+
+  return messages;
+}
+
+/**
+ * Counts the characters Discord counts against an embed.
+ */
+function embed_length(embed: APIEmbed): number {
+  return (
+    (embed.title?.length ?? 0) +
+    (embed.description?.length ?? 0) +
+    (embed.footer?.text.length ?? 0) +
+    (embed.fields ?? []).reduce(
+      (total, field) => total + field.name.length + field.value.length,
+      0,
+    )
+  );
+}
+
+/**
+ * Every message a tracked summary was made up of, including rows written before summaries could
+ * span more than one message.
+ */
+function replaced_message_ids(replaced: SummaryMessage): Snowflake[] {
+  if (replaced.message_ids?.length) {
+    return replaced.message_ids;
+  }
+
+  return replaced.message_id ? [replaced.message_id] : [];
 }
 
 /**
@@ -244,48 +348,6 @@ interface PlayedCollection {
 interface PlayedScoreboard {
   scoreboard: Scoreboard;
   inline: boolean;
-}
-
-/**
- * Picks the best layout from `LAYOUT_PREFERENCES` that fits inside Discord's embed budget.
- *
- * Every scoreboard is laid out the same way, which is what keeps a busy day fair: spending the
- * budget on whichever collections happen to come first would show the New York Times in full and
- * drop 4x3 entirely. Cutting all of them back instead leaves every game someone played on the
- * summary.
- *
- * @returns {ScoreboardLayout} The layout to render in, falling back to the smallest one, in which
- * case rendering trims from the end as a last resort.
- */
-function fit_layout(played: PlayedCollection[]): ScoreboardLayout {
-  const fits = LAYOUT_PREFERENCES.find(
-    (layout) => measure(played, layout) <= MAX_MESSAGE_EMBED_LENGTH,
-  );
-
-  return fits ?? LAYOUT_PREFERENCES[LAYOUT_PREFERENCES.length - 1];
-}
-
-/**
- * Counts the characters the summary would take up in the given layout.
- */
-function measure(played: PlayedCollection[], layout: ScoreboardLayout): number {
-  return played.reduce(
-    (total, { collection, scoreboards }) =>
-      total +
-      collection.title.length +
-      collection.description.length +
-      FOOTER_ALLOWANCE +
-      scoreboards.reduce((sum, { scoreboard, inline }) => {
-        const rendered = scoreboard.render(inline, layout);
-        return (
-          sum +
-          (rendered
-            ? rendered.field.name.length + rendered.field.value.length
-            : 0)
-        );
-      }, 0),
-    0,
-  );
 }
 
 /**

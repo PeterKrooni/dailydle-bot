@@ -35,14 +35,14 @@ export interface ScoreboardLayout {
 }
 
 /**
- * Layouts to render the summary in, best first, falling through until one fits inside Discord's
- * embed budget.
+ * Layouts to render the summary in, best first, falling through until one fits in the messages the
+ * summary is allowed to span.
  *
- * A player's name links to the message they shared their score in, and that link is around five
- * sixths of a row's length. On a quiet day everything fits and nothing is given up; on a day where
- * every game was played by everybody, that much of the budget spent on links would leave room for a
- * podium of one. Deep scoreboards are worth more than clickable names, so the links go first, and
- * only then does the summary start showing fewer players.
+ * A summary too big for one message is split across several before any of this applies, so the
+ * first entry is what almost every day gets. These are for the day so busy that even splitting is
+ * not enough. A player's name links to the message they shared their score in, and that link is
+ * around five sixths of a row's length, so the links go first - deep scoreboards are worth more than
+ * clickable names - and only then does the summary start showing fewer players.
  */
 export const LAYOUT_PREFERENCES: ScoreboardLayout[] = [
   { rows: DEFAULT_MAX_ENTRIES, links: true },

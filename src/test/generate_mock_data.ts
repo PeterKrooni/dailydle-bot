@@ -139,7 +139,8 @@ export async function generate_mock_data() {
       : Array.from({ length: 5 }, (_, i) => ({
           id: snowflake(),
           name: `TestUser${i + 1}`,
-          server_name: `User${i + 1}`,
+          // Marked so an invented score is never mistaken for somebody's real result.
+          server_name: `[mock] User${i + 1}`,
         }));
 
   const entries: DbEntry[] = [];
