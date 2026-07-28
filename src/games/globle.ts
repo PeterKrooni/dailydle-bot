@@ -1,7 +1,14 @@
-import { GameBuilder } from '../core/builders/game_builder.js'
+import { GameBuilder } from '../core/builders/game_builder.js';
+import { ScoreboardStyle } from '../core/embeds/scoreboard.js';
 import { MatchType, MessageParser } from '../core/message_parser.js';
 
-export const Globle = new GameBuilder('Globle') 
+const globle_scoreboard = (title: string): ScoreboardStyle => ({
+  title: title,
+  unit: 'guesses',
+  is_perfect: (score) => score === '1',
+});
+
+export const Globle = new GameBuilder('Globle')
   .add_message_parser(
     new MessageParser(
       'Globle',
@@ -11,16 +18,13 @@ export const Globle = new GameBuilder('Globle')
       (match) => match,
     ),
   )
+  .set_scoreboard(globle_scoreboard('Globle'))
   .set_responder((entry) => {
     return `${entry.user.server_name ?? entry.user.name} did Globle for ${entry.day_id} with score ${entry.score}.`;
   })
-  .set_embed_field_score_formatter(
-    (user_link, score) => 
-      `${user_link} : ${score}`,
-  )
   .build();
 
-  export const GlobleCapitals = new GameBuilder('GlobleCapitals') 
+export const GlobleCapitals = new GameBuilder('GlobleCapitals')
   .add_message_parser(
     new MessageParser(
       'GlobleCapitals',
@@ -30,16 +34,14 @@ export const Globle = new GameBuilder('Globle')
       (match) => match,
     ),
   )
+  .set_scoreboard(globle_scoreboard('Capitals'))
   .set_responder((entry) => {
     return `${entry.user.server_name ?? entry.user.name} did Globle (capitals) for ${entry.day_id} with score ${entry.score}.`;
   })
-  .set_embed_field_score_formatter(
-    (user_link, score) => 
-      `${user_link} : ${score}`,
-  )
   .build();
 
-  export const Description: string = `Daily games from Globle:
-  [Globle](https://globle-game.com/) | \
-  [Globle Capitals](https://globle-capitals.com/)`;
-  
+export const Description: string = `Daily games from Globle:
+[Globle](https://globle-game.com/) | \
+[Globle Capitals](https://globle-capitals.com/)`;
+
+export const Color: number = 0x14b8a6;

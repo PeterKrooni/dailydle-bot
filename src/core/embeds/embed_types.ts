@@ -1,21 +1,23 @@
 import Game from '../game.js';
 
-/**
- * An a single field entry in a score collection.
- * Example: 
- */
+/** One scoreboard in a score collection. */
 export interface ScoreField {
   game: Game;
   inline: boolean;
 }
 
 /**
- * A collection of field entries, with related title and description data.
+ * A collection of scoreboards for related games, e.g. everything from the New York Times.
  */
 export interface ScoreCollection {
   title: string;
   description: string;
   fields: ScoreField[];
+
+  /** Colour of the embed's left edge, as `0xRRGGBB`. */
+  color?: number;
+
+  /** Defaults to a count of who played, see `render_participation`. */
   footer?: string;
 }
 
@@ -25,4 +27,7 @@ export interface ScoreCollection {
 export interface EmbedMessage {
   content: string | (() => string);
   embeds: ScoreCollection[];
+
+  /** Appended to `content` on a day with no scoreboards to show at all. */
+  empty?: string;
 }

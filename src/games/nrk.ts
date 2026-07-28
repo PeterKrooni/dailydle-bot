@@ -1,8 +1,8 @@
 import { GameBuilder } from '../core/builders/game_builder.js';
+import { highest_first } from '../core/embeds/scoreboard.js';
 import { MatchType, MessageParser } from '../core/message_parser.js';
 
-
-export const Tvers = new GameBuilder('Tvers') 
+export const Tvers = new GameBuilder('Tvers')
   .add_message_parser(
     new MessageParser(
       'Tvers',
@@ -12,13 +12,11 @@ export const Tvers = new GameBuilder('Tvers')
       (match) => match,
     ),
   )
+  .set_score_sorter(highest_first())
+  .set_scoreboard({ unit: 'points' })
   .set_responder((entry) => {
     return `${entry.user.server_name ?? entry.user.name} did Tvers ${entry.day_id} with score ${entry.score}.`;
   })
-  .set_embed_field_score_formatter(
-    (user_link: any, score: any) => 
-      `${user_link} : ${score}`,
-  )
   .build();
 
 export const Former = new GameBuilder('Former')
@@ -31,17 +29,14 @@ export const Former = new GameBuilder('Former')
       (match) => match,
     ),
   )
+  .set_scoreboard({ unit: 'moves' })
   .set_responder((entry) => {
-    console.log('have entry: ', entry)
-    const d = new Date();
     return `${entry.user.server_name ?? entry.user.name} did Former ${entry.day_id} in ${entry.score} moves.`;
   })
-  .set_embed_field_score_formatter(
-    (user_link: any, score: any) => 
-      `${user_link} : ${score}`,
-  )
   .build();
 
-export const Description: string = `Daily games from Norsk Rikskringkasting (NRK):
+export const Description: string = `Daily games from NRK:
 [Tvers](https://www.nrk.no/spill/tvers) | \
 [Former](https://www.nrk.no/spill/former)`;
+
+export const Color: number = 0x00b9f1;

@@ -1,7 +1,7 @@
-import { EmbedField, Message, TextChannel } from 'discord.js';
+import { Message, TextChannel } from 'discord.js';
 import { MessageParser } from './message_parser.js';
 import { GameEntry, GameEntryModel } from './database/schema.js';
-import { EmbedFieldFormatter } from './embeds/embed_formatter.js';
+import { EmbedFieldFormatter, Scoreboard } from './embeds/embed_formatter.js';
 import { summary_button_row } from './summary_button.js';
 import { get_today } from '../util.js';
 
@@ -92,15 +92,12 @@ export class Game {
   }
 
   /**
-   * Generates an Embed field with all of today's entries for this game.
+   * Loads and ranks all of today's entries for this game.
    *
-   * @param {boolean} [inline=true] - Whether the embed should be inline or not.
-   * @returns {Promise<EmbedField>} An embed field.
+   * @returns {Promise<Scoreboard | null>} The scoreboard, or `null` if nobody played today.
    */
-  public get_embed_field = async (
-    inline: boolean = true,
-  ): Promise<EmbedField | null> =>
-    await this.embed_field_formatter.get_embed_field(inline);
+  public load_scoreboard = async (): Promise<Scoreboard | null> =>
+    await this.embed_field_formatter.load();
 }
 
 export default Game;

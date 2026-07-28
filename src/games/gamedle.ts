@@ -1,5 +1,5 @@
 import { GameBuilder } from '../core/builders/game_builder.js';
-import { ScoreFormatter, ScoreSorter } from '../core/embeds/embed_formatter.js';
+import { ScoreboardStyle } from '../core/embeds/scoreboard.js';
 import { Responder } from '../core/game.js';
 import { MatchParser, MatchType } from '../core/message_parser.js';
 
@@ -14,9 +14,18 @@ function gamedle_score_parser(max_attempts: number): MatchParser {
       .toString();
 }
 
-function gamedle_score_formatter(max_attempts: number): ScoreFormatter {
-  return (user_link: any, score: any) =>
-    `${user_link} : ${score === '1' ? '🌟' : Number(score) < max_attempts ? score : '💀'}`;
+/** A score at the cap means the game was never guessed. */
+function gamedle_scoreboard(
+  title: string,
+  max_attempts: number,
+): ScoreboardStyle {
+  return {
+    title: title,
+    unit: 'guesses',
+    display: (score) => `${score}/${max_attempts}`,
+    is_perfect: (score) => score === '1',
+    is_failed: (score) => Number(score) >= max_attempts,
+  };
 }
 
 function gamedle_responder(max_attempts: number): Responder {
@@ -24,17 +33,13 @@ function gamedle_responder(max_attempts: number): Responder {
     `${entry.user.server_name ?? entry.user.name} ${Number(entry.score) < max_attempts ? 'did' : 'failed'} ${entry.game} with ${entry.score} attempts.`;
 }
 
-const score_sorter: ScoreSorter = (a: any, b: any) => Number(a.score) - Number(b.score);
-
 export const Classic = new GameBuilder('Gamedle (Classic)')
   .set_matcher(/Gamedle:\s(\d{2}\/\d{2}\/\d{4})\s(.*)\s?>/, [
     MatchType.Day,
     MatchType.Score,
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_DEFAULT_ATTEMPTS))
-  .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS),
-  )
+  .set_scoreboard(gamedle_scoreboard('Classic', GAMEDLE_DEFAULT_ATTEMPTS))
   .set_responder(gamedle_responder(GAMEDLE_DEFAULT_ATTEMPTS))
   .build();
 
@@ -44,9 +49,7 @@ export const Artwork = new GameBuilder('Gamedle (Artwork)')
     MatchType.Score,
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_DEFAULT_ATTEMPTS))
-  .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS),
-  )
+  .set_scoreboard(gamedle_scoreboard('Artwork', GAMEDLE_DEFAULT_ATTEMPTS))
   .set_responder(gamedle_responder(GAMEDLE_DEFAULT_ATTEMPTS))
   .build();
 
@@ -56,9 +59,7 @@ export const Keywords = new GameBuilder('Gamedle (Keywords)')
     MatchType.Score,
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_DEFAULT_ATTEMPTS))
-  .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_DEFAULT_ATTEMPTS),
-  )
+  .set_scoreboard(gamedle_scoreboard('Keywords', GAMEDLE_DEFAULT_ATTEMPTS))
   .set_responder(gamedle_responder(GAMEDLE_DEFAULT_ATTEMPTS))
   .build();
 
@@ -68,9 +69,7 @@ export const Guess = new GameBuilder('Gamedle (Guess)')
     MatchType.Score,
   ])
   .set_score_parser(gamedle_score_parser(GAMEDLE_GUESS_ATTEMPTS))
-  .set_embed_field_score_formatter(
-    gamedle_score_formatter(GAMEDLE_GUESS_ATTEMPTS),
-  )
+  .set_scoreboard(gamedle_scoreboard('Guess', GAMEDLE_GUESS_ATTEMPTS))
   .set_responder(gamedle_responder(GAMEDLE_GUESS_ATTEMPTS))
   .build();
 
@@ -79,3 +78,5 @@ export const Description: string = `Daily games from Gamedle:
 [Artwork](https://www.gamedle.wtf/artwork) | \
 [Keywords](https://www.gamedle.wtf/keywords) | \
 [Guess](https://www.gamedle.wtf/guess)`;
+
+export const Color: number = 0x9b5de5;

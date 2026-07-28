@@ -1,8 +1,5 @@
-import {
-  EmbedFieldFormatter,
-  ScoreFormatter,
-  ScoreSorter,
-} from '../embeds/embed_formatter.js';
+import { EmbedFieldFormatter } from '../embeds/embed_formatter.js';
+import { ScoreboardStyle, ScoreSorter } from '../embeds/scoreboard.js';
 import { Game, Responder } from '../game.js';
 import { MatchParser, MatchType, MessageParser } from '../message_parser.js';
 
@@ -18,9 +15,8 @@ export class GameBuilder {
   private day_id_parser?: MatchParser;
   private score_parser?: MatchParser;
 
-  private formatter?: EmbedFieldFormatter;
+  private scoreboard?: ScoreboardStyle;
   private score_sorter?: ScoreSorter;
-  private score_formatter?: ScoreFormatter;
   private max_entries?: number;
 
   private responder?: Responder;
@@ -87,35 +83,19 @@ export class GameBuilder {
     return this;
   }
 
-  /**
-   * Sets the `EmbedFieldFormatter` for this game.
-   */
-  set_formatter(formatter: EmbedFieldFormatter): GameBuilder {
-    this.formatter = formatter;
+  /** Sets how this game's scores are presented on the summary scoreboard. */
+  set_scoreboard(scoreboard: ScoreboardStyle): GameBuilder {
+    this.scoreboard = scoreboard;
     return this;
   }
 
-  /**
-   * Sets the score sorter used for displaying high-scores in an embed field.
-   */
+  /** Defaults to `lowest_first`, so games where a higher score wins have to say so. */
   set_score_sorter(score_sorter: ScoreSorter): GameBuilder {
     this.score_sorter = score_sorter;
     return this;
   }
 
-  /**
-   * Sets the formatter used for displaying a user and their score in the embed field.
-   */
-  set_embed_field_score_formatter(
-    score_formatter: ScoreFormatter,
-  ): GameBuilder {
-    this.score_formatter = score_formatter;
-    return this;
-  }
-
-  /**
-   * Sets the maximum game entries allowed for a embed field.
-   */
+  /** Sets the maximum game entries shown on this game's scoreboard. */
   set_max_embed_field_entries(max_entries: number): GameBuilder {
     this.max_entries = max_entries;
     return this;
@@ -179,17 +159,16 @@ export class GameBuilder {
   }
 
   private build_formatter(): EmbedFieldFormatter {
-    if (this.formatter !== undefined) {
-      return this.formatter;
-    }
-
-    if (this.name === undefined)
-      throw new Error('Game name must have a value.');
+    // Entries are stored under the name of the parser that matched them, not the name of the game,
+    // so the scoreboard has to look them up by every name this game's parsers produce.
+    const game_names = [
+      ...new Set(this.build_message_parsers().map((parser) => parser.name)),
+    ];
 
     return new EmbedFieldFormatter(
-      this.name,
+      game_names,
+      this.scoreboard,
       this.score_sorter,
-      this.score_formatter,
       this.max_entries,
     );
   }

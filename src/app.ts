@@ -21,9 +21,11 @@ import { generate_mock_data } from './test/generate_mock_data.js';
 // #region Constants
 
 const response_message_content = () =>
-  `**Dailydle** - ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}
-  
-Share your dailydle scores in this channel to register your entry`;
+  `## 📋 Dailydle
+### ${new Date().toLocaleDateString('en-GB', { weekday: 'long', month: 'long', day: 'numeric' })}
+-# Share your dailydle scores in this channel to register your entry`;
+
+const no_scores_content = '*Nothing registered yet today - be the first.*';
 
 const enable_dev_features = process.argv.includes('--dev')
 if (enable_dev_features) {
@@ -32,10 +34,12 @@ if (enable_dev_features) {
 
 const response_message = new GameSummaryMessage({
   content: response_message_content,
+  empty: no_scores_content,
   embeds: [
     {
-      title: 'New York Times',
+      title: '📰 New York Times',
       description: NYT.Description,
+      color: NYT.Color,
       fields: [
         { game: NYT.Wordle, inline: true },
         { game: NYT.Connections, inline: true },
@@ -44,32 +48,36 @@ const response_message = new GameSummaryMessage({
       ],
     },
     {
-      title: 'Bullpen',
+      title: '⚾ Bullpen',
       description: Bullpen.Description,
+      color: Bullpen.Color,
       fields: [
         { game: Bullpen.BullpenEasy, inline: true },
         { game: Bullpen.BullpenHard, inline: true },
       ]
     },
     {
-      title: 'NRK',
+      title: '📺 NRK',
       description: NRK.Description,
+      color: NRK.Color,
       fields: [
         { game: NRK.Tvers, inline: true },
         { game: NRK.Former, inline: true },
       ]
     },
     {
-      title: 'Globle',
+      title: '🌍 Globle',
       description: Globle.Description,
+      color: Globle.Color,
       fields: [
         { game: Globle.Globle, inline: true },
         { game: Globle.GlobleCapitals, inline: true },
       ]
     },
     {
-      title: 'Gamedle',
+      title: '🎮 Gamedle',
       description: Gamedle.Description,
+      color: Gamedle.Color,
       fields: [
         { game: Gamedle.Classic, inline: true },
         { game: Gamedle.Artwork, inline: true },
@@ -78,29 +86,33 @@ const response_message = new GameSummaryMessage({
       ],
     },
     {
-      title: 'FoodGuessr',
+      title: '🍽️ FoodGuessr',
       description: FoodGuessr.Description,
+      color: FoodGuessr.Color,
       fields: [
         { game: FoodGuessr.FoodGuessr, inline: true },
       ],
     },
     {
-      title: 'TimeGuessr',
+      title: '🕰️ TimeGuessr',
       description: TimeGuessr.Description,
+      color: TimeGuessr.Color,
       fields: [
         { game: TimeGuessr.TimeGuessr, inline: true },
       ]
     },
     {
-      title: 'Bybandle',
+      title: '🚋 Bybandle',
       description: Bybandle.Description,
+      color: Bybandle.Color,
       fields: [
         { game: Bybandle.Bybandle, inline: true },
       ]
     },
     {
-      title: '4x3',
+      title: '🌟 4x3',
       description: FourByThree.Description,
+      color: FourByThree.Color,
       fields: [
         { game: FourByThree.FourByThree, inline: true },
       ]

@@ -1,5 +1,5 @@
 import { GameBuilder } from '../core/builders/game_builder.js';
-import { ScoreSorter } from '../core/embeds/embed_formatter.js';
+import { highest_first } from '../core/embeds/scoreboard.js';
 import { MatchType, MessageParser } from '../core/message_parser.js';
 
 /**
@@ -65,13 +65,6 @@ const parse_score = (summary: string): string => {
 const points_of = (score: string): string => score.split(',')[0];
 const mistakes_of = (score: string): string => score.split(',')[1];
 
-/** Sorts on points, descending, with unsolved puzzles last. */
-const SCORE_SORTER: ScoreSorter = (a, b) => {
-  const x = parseInt(a.score);
-  const y = parseInt(b.score);
-  return isNaN(x) ? 1 : isNaN(y) ? -1 : y - x;
-};
-
 export const FourByThree = new GameBuilder('4x3')
   .add_message_parser(
     new MessageParser(
@@ -82,7 +75,15 @@ export const FourByThree = new GameBuilder('4x3')
       parse_score,
     ),
   )
-  .set_score_sorter(SCORE_SORTER)
+  .set_score_sorter(highest_first())
+  .set_scoreboard({
+    unit: 'points',
+    display: points_of,
+    is_perfect: (score) =>
+      points_of(score) !== NO_POINTS && mistakes_of(score) === '0',
+    is_failed: (score) =>
+      points_of(score) === NO_POINTS || mistakes_of(score) === RULE_BREAKER,
+  })
   .set_responder((entry) => {
     const user = entry.user.server_name ?? entry.user.name;
     const points = points_of(entry.score);
@@ -99,10 +100,9 @@ export const FourByThree = new GameBuilder('4x3')
     }
     return `${user} did 4x3 ${entry.day_id} with ${points} points and ${mistakes} mistake${mistakes === '1' ? '' : 's'}`;
   })
-  .set_embed_field_score_formatter(
-    (user_link, score) => `${user_link} : ${points_of(score)}`,
-  )
   .build();
 
 export const Description: string = `Daily 4x3 puzzle by Hank Green:
 [Play 4x3](https://4x3.fun/)`;
+
+export const Color: number = 0xfacc15;

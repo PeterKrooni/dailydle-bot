@@ -14,7 +14,7 @@ export interface GameEntry {
   channel_id: Snowflake;
   server_id: Snowflake;
   content?: string;
-  schema_version: string
+  schema_version: string;
 }
 
 const schema = new Schema<GameEntry, Model<GameEntry>>(
@@ -31,7 +31,7 @@ const schema = new Schema<GameEntry, Model<GameEntry>>(
     channel_id: { type: String, required: true },
     server_id: { type: String, required: true },
     content: String,
-    schema_version: { type: String, default: "2" },
+    schema_version: { type: String, default: '2' },
   },
   { timestamps: true },
 );
@@ -39,13 +39,18 @@ const schema = new Schema<GameEntry, Model<GameEntry>>(
 export const GameEntryModel = model('GameEntry', schema);
 
 /**
- * The most recent game summary message the bot posted in a channel.
+ * The most recent game summary the bot posted in a channel.
  *
  * Tracked so that posting a new summary can clean up the one it replaces.
  */
 export interface SummaryMessage {
   channel_id: Snowflake;
-  message_id: Snowflake;
+
+  /** Every message the summary is made up of, in the order they were posted. */
+  message_ids: Snowflake[];
+
+  /** @deprecated Read only, so rows written by an older version can still be cleaned up. */
+  message_id?: Snowflake;
 }
 
 const summary_message_schema = new Schema<
@@ -54,7 +59,8 @@ const summary_message_schema = new Schema<
 >(
   {
     channel_id: { type: String, required: true, unique: true },
-    message_id: { type: String, required: true },
+    message_ids: { type: [String], default: [] },
+    message_id: { type: String },
   },
   { timestamps: true },
 );

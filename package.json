@@ -7,9 +7,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node --loader ts-node/esm .\\src\\app.ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
   },
   "keywords": [],
   "author": "",
