@@ -37,3 +37,29 @@ const schema = new Schema<GameEntry, Model<GameEntry>>(
 );
 
 export const GameEntryModel = model('GameEntry', schema);
+
+/**
+ * The most recent game summary message the bot posted in a channel.
+ *
+ * Tracked so that posting a new summary can clean up the one it replaces.
+ */
+export interface SummaryMessage {
+  channel_id: Snowflake;
+  message_id: Snowflake;
+}
+
+const summary_message_schema = new Schema<
+  SummaryMessage,
+  Model<SummaryMessage>
+>(
+  {
+    channel_id: { type: String, required: true, unique: true },
+    message_id: { type: String, required: true },
+  },
+  { timestamps: true },
+);
+
+export const SummaryMessageModel = model(
+  'SummaryMessage',
+  summary_message_schema,
+);

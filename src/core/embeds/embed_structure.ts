@@ -1,12 +1,13 @@
 import {
   APIEmbed,
   APIEmbedField,
+  ButtonInteraction,
   EmbedBuilder,
-  MessageReaction,
-  PartialMessageReaction,
-  TextChannel,
+  Snowflake,
 } from 'discord.js';
 import Game from '../game.js';
+import { SummaryMessage, SummaryMessageModel } from '../database/schema.js';
+import { get_today } from '../../util.js';
 import { EmbedMessage } from './embed_types.js';
 
 
@@ -26,12 +27,17 @@ export class GameSummaryMessage {
   }
 
   /**
-   * Sends the game summary message to the given message reaction's channel.
+   * Sends the game summary message as a reply to the given button interaction, then deletes the
+   * summary message it replaces - see `delete_replaced_summary`.
    *
-   * @param {MessageReaction | PartialMessageReaction} message_reaction - Message reaction in the channel to send to.
+   * The interaction is deferred before anything else, because building the summary hits the
+   * database and Discord discards interactions that are not acknowledged within three seconds.
+   *
+   * @param {ButtonInteraction} interaction - The button interaction to reply to.
    */
-  async send(message_reaction: MessageReaction | PartialMessageReaction) {
-    const message = message_reaction.message;
+  async send(interaction: ButtonInteraction) {
+    await interaction.deferReply();
+
     const payload = {
       content:
         typeof this.message.content === 'string'
@@ -39,14 +45,61 @@ export class GameSummaryMessage {
           : this.message.content(),
       embeds: await this.get_embeds(),
     };
-    await (message.channel as TextChannel)
-      .send(payload)
-      .then(() =>
-        console.log(
-          `Sent reaction message to ${message.member?.displayName ?? message.author!.displayName}.`,
+    const summary = await interaction.editReply(payload);
+    console.log(
+      `Sent summary message to ${interaction.member?.user.username ?? interaction.user.username}.`,
+    );
+
+    // Only once the new summary is up do we clear away the one it replaces.
+    const replaced = await GameSummaryMessage.track_summary(
+      interaction.channelId,
+      summary.id,
+    );
+    await GameSummaryMessage.delete_replaced_summary(interaction, replaced);
+  }
+
+  /**
+   * Records `message_id` as the current summary message for `channel_id`, and returns the entry it
+   * replaced - if any.
+   *
+   * The swap is a single atomic update so that two people clicking the summary button at the same
+   * time cannot both claim, and both try to delete, the same previous summary.
+   */
+  private static async track_summary(
+    channel_id: Snowflake,
+    message_id: Snowflake,
+  ): Promise<SummaryMessage | null> {
+    return await SummaryMessageModel.findOneAndUpdate(
+      { channel_id: channel_id },
+      { channel_id: channel_id, message_id: message_id },
+      { upsert: true },
+    ).exec();
+  }
+
+  /**
+   * Deletes a summary message that has been replaced by a newer one, keeping a single summary per
+   * channel per day.
+   *
+   * Summaries from previous days are left alone - those are a record of that day. Failing to
+   * delete is not treated as an error: the message may well be gone already.
+   */
+  private static async delete_replaced_summary(
+    interaction: ButtonInteraction,
+    replaced: SummaryMessage | null,
+  ) {
+    const updated_at = (replaced as { updatedAt?: Date } | null)?.updatedAt;
+    if (!replaced || !updated_at || updated_at < get_today()) {
+      return;
+    }
+
+    await interaction.channel?.messages
+      .fetch(replaced.message_id)
+      .then((message) => message.delete())
+      .catch((err) =>
+        console.info(
+          `Could not delete replaced summary message ${replaced.message_id}: ${err}`,
         ),
-      )
-      .catch((err) => console.warn(`Could not send reaction message: ${err}`));
+      );
   }
 
   /**
@@ -71,6 +124,12 @@ export class GameSummaryMessage {
         if (field !== null) {
           fields.push(field);
         }
+      }
+
+      // Only include collections someone has played today. Games with no entries produce no
+      // field, so an empty field list means nobody played anything in this collection.
+      if (fields.length === 0) {
+        continue;
       }
 
       const footer_options = embed_structure.footer
